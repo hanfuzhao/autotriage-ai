@@ -1,4 +1,4 @@
-// AutoTriage AI — front-end logic (vanilla JS, no build step).
+// Front-end logic for the app. Plain JS, no build step.
 (() => {
   const $ = (sel) => document.querySelector(sel);
   const RING_CIRC = 2 * Math.PI * 52; // r=52 in the SVG
@@ -26,9 +26,9 @@
     status: $("#statusText"),
   };
 
-  const MODEL_NAMES = { deep: "Deep · TextCNN", classical: "Classical · TF-IDF+LogReg", naive: "Naive baseline" };
+  const MODEL_NAMES = { deep: "Deep TextCNN", classical: "Classical TF-IDF and LogReg", naive: "Naive baseline" };
 
-  // ---- examples ----
+  // examples
   async function loadExamples() {
     try {
       const res = await fetch("/api/examples");
@@ -47,7 +47,7 @@
     } catch (_) { /* non-fatal */ }
   }
 
-  // ---- model picker ----
+  // model picker
   el.modelPicker.querySelectorAll(".seg").forEach((btn) => {
     btn.addEventListener("click", () => {
       el.modelPicker.querySelectorAll(".seg").forEach((b) => b.classList.remove("active"));
@@ -57,7 +57,7 @@
     });
   });
 
-  // ---- analyze ----
+  // analyze
   async function analyze() {
     const text = el.complaint.value.trim();
     if (text.length < 15) { flashError("Please enter a longer complaint (at least a sentence)."); return; }
@@ -99,7 +99,7 @@
     setTimeout(() => { box.hidden = true; }, 4000);
   }
 
-  // ---- rendering ----
+  // rendering
   const pct = (x) => `${Math.round(x * 100)}%`;
 
   function render(data, text) {

@@ -1,6 +1,4 @@
-"""Exploratory data analysis for the NHTSA complaints corpus:
-class distribution, narrative-length statistics, and safety-flag rates.
-"""
+"""Exploratory data analysis for the NHTSA complaints corpus."""
 from __future__ import annotations
 
 import json

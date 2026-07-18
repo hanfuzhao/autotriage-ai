@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoTriage AI — Vehicle Complaint Component Classifier</title>
+  <title>AutoTriage AI, Vehicle Complaint Component Classifier</title>
   <meta name="description" content="Route any vehicle safety complaint to the right engineering system in seconds, using NLP trained on real NHTSA complaint narratives." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -16,12 +16,12 @@
         <div class="brand-mark">◈</div>
         <div class="brand-text">
           <span class="brand-name">AutoTriage <span class="accent">AI</span></span>
-          <span class="brand-sub">NHTSA complaint → component classifier</span>
+          <span class="brand-sub">NHTSA complaint to component classifier</span>
         </div>
       </div>
       <div class="nav-status">
         <span class="dot"></span>
-        <span id="statusText">Live · {{ n_models }} models loaded</span>
+        <span id="statusText">Live, {{ n_models }} models loaded</span>
       </div>
     </div>
   </header>
@@ -30,7 +30,7 @@
     <div class="hero-inner">
       <h1>Every safety complaint, routed to the right system in seconds.</h1>
       <p class="lede">
-        Owners describe problems in plain language — "the brakes went to the floor",
+        Owners describe problems in plain words, like "the brakes went to the floor" or
         "phantom braking on the highway". AutoTriage reads that narrative and predicts
         which of the {{ labels|length }} vehicle systems it belongs to, so safety teams
         stop triaging by hand. Trained on <strong>real NHTSA complaint narratives</strong>.
@@ -54,13 +54,13 @@
       <label class="field-label">Try an example</label>
       <div class="examples" id="examples"></div>
 
-      <textarea id="complaint" placeholder="e.g. While driving on the highway the engine suddenly lost power and the check engine light came on…" spellcheck="false"></textarea>
+      <textarea id="complaint" placeholder="e.g. While driving on the highway the engine suddenly lost power and the check engine light came on..." spellcheck="false"></textarea>
 
       <div class="controls">
         <div class="model-picker">
           <label class="field-label">Model</label>
           <div class="segmented" id="modelPicker">
-            <button data-model="deep" class="seg active">Deep · TextCNN</button>
+            <button data-model="deep" class="seg active">Deep TextCNN</button>
             <button data-model="classical" class="seg">Classical</button>
             <button data-model="naive" class="seg">Naive</button>
           </div>
@@ -96,7 +96,7 @@
           </div>
           <div class="verdict-text">
             <span class="verdict-label">Predicted component</span>
-            <span class="verdict-value" id="predLabel">—</span>
+            <span class="verdict-value" id="predLabel">...</span>
             <span class="verdict-model" id="modelUsed"></span>
           </div>
         </div>
@@ -107,7 +107,7 @@
         </div>
 
         <div class="block" id="highlightBlock">
-          <h3>Why — words driving the prediction</h3>
+          <h3>What drove this prediction</h3>
           <p class="narrative" id="narrative"></p>
         </div>
 
@@ -122,7 +122,7 @@
   <footer class="foot">
     <div class="foot-inner">
       <span>Data: <a href="https://www.nhtsa.gov/nhtsa-datasets-and-apis" target="_blank" rel="noopener">NHTSA ODI Complaints API</a> (public domain).</span>
-      <span>Module 2 NLP Project · three-model comparison (naive / classical / deep).</span>
+      <span>Module 2 NLP Project. Three-model comparison across naive, classical, and deep.</span>
     </div>
   </footer>
 

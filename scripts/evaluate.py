@@ -1,14 +1,4 @@
-"""Evaluation metrics and plotting utilities shared by the training pipeline
-and the experiment harness.
-
-Metric choice rationale: the component distribution is heavily imbalanced
-(electrical/engine complaints dwarf suspension/lighting). Plain accuracy is
-therefore misleading -- a majority predictor already scores high. We report
-**macro-F1** as the headline metric because it weights every safety component
-equally, so failing on rare-but-critical systems (e.g. air bags) is penalised
-as much as failing on common ones. Accuracy and weighted-F1 are reported
-alongside for context.
-"""
+"""Metrics and plots shared by the training pipeline and the experiments; macro-F1 is the headline metric since the classes are imbalanced."""
 from __future__ import annotations
 
 from pathlib import Path

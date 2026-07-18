@@ -1,13 +1,4 @@
-"""Pretrained GloVe word embeddings for the TextCNN (transfer learning).
-
-Initialising the embedding layer with GloVe vectors (Pennington et al., 2014)
-injects general-language knowledge the model can't learn from ~26k complaints
-alone, which lifts accuracy and — importantly — the low-data (cold-start) regime.
-
-The vectors are downloaded once to ``data/raw/`` and are only needed at *training*
-time; the learned matrix is baked into the saved ``.pt`` so the deployed app stays
-self-contained. GloVe is distributed under the Public Domain Dedication and License.
-"""
+"""Pretrained GloVe word embeddings for the TextCNN. GloVe vectors, Pennington et al 2014."""
 from __future__ import annotations
 
 import zipfile
@@ -22,7 +13,7 @@ GLOVE_URL = "https://huggingface.co/stanfordnlp/glove/resolve/main/glove.6B.zip"
 
 
 def ensure_glove(path: Path = GLOVE_PATH) -> Path | None:
-    """Download + extract GloVe 6B if missing. Returns the path, or None on failure."""
+    """Download and extract GloVe 6B if missing. Returns the path, or None on failure."""
     if path.exists():
         return path
     try:
@@ -44,11 +35,7 @@ _GLOVE_CACHE: dict[str, dict[str, np.ndarray]] = {}
 
 
 def load_glove(path: Path = GLOVE_PATH, dim: int = GLOVE_DIM) -> dict[str, np.ndarray]:
-    """Load a GloVe text file into a {word: vector} dict (cached in-process).
-
-    The full pipeline builds the embedding matrix several times (once per model
-    and once per learning-curve point); caching avoids re-reading the ~700 MB file.
-    """
+    """Load a GloVe text file into a word to vector dict, cached so we don't re-read the big file."""
     key = str(path)
     if key in _GLOVE_CACHE:
         return _GLOVE_CACHE[key]
@@ -65,14 +52,11 @@ def load_glove(path: Path = GLOVE_PATH, dim: int = GLOVE_DIM) -> dict[str, np.nd
 
 def build_embedding_matrix(vocab: dict[str, int], dim: int = GLOVE_DIM,
                            path: Path = GLOVE_PATH, seed: int = 42) -> tuple[np.ndarray, float]:
-    """Build a (vocab_size, dim) matrix; GloVe where available, small-random for OOV.
-
-    Returns the matrix and the fraction of the vocabulary covered by GloVe.
-    """
+    """Build the embedding matrix using GloVe where available and random for OOV, plus GloVe coverage."""
     glove = load_glove(path, dim)
     rng = np.random.default_rng(seed)
     matrix = rng.normal(0, 0.1, size=(len(vocab), dim)).astype(np.float32)
-    matrix[0] = 0.0  # <pad>
+    matrix[0] = 0.0
     hits = 0
     for tok, idx in vocab.items():
         vec = glove.get(tok)

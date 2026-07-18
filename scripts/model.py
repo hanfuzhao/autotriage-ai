@@ -1,22 +1,9 @@
-"""The three required modeling approaches for NHTSA complaint component
-classification, behind one common interface:
-
-    NaiveBaseline   - majority-class predictor (accuracy floor)
-    ClassicalModel  - TF-IDF (1-2 grams) + class-weighted Logistic Regression
-    TextCNNModel    - Convolutional neural network over learned word embeddings
-
-Every model exposes:  fit(texts, labels) -> self, predict(texts),
-predict_proba(texts), .classes_, save(path), and load(path) [classmethod].
-
-The TextCNN architecture follows Yoon Kim, "Convolutional Neural Networks for
-Sentence Classification" (EMNLP 2014, https://arxiv.org/abs/1408.5882). All
-code here is original; only standard libraries (scikit-learn, PyTorch) are used.
-"""
+"""Three models behind one interface: a naive baseline, TF-IDF + LogReg, and a TextCNN (Kim 2014)."""
 from __future__ import annotations
 
 import os
 
-# Guard against the duplicate-OpenMP crash seen with torch + sklearn on macOS.
+# avoids the duplicate OpenMP crash with torch plus sklearn on mac
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
@@ -33,15 +20,8 @@ from sklearn.metrics import f1_score
 from sklearn.pipeline import Pipeline
 
 
-# ===========================================================================
-# 1. Naive baseline
-# ===========================================================================
 class NaiveBaseline:
-    """Predicts the most frequent class for every input, ignoring the text.
-
-    This is the accuracy floor: any model that cannot beat it has learned
-    nothing. Its per-class probabilities are just the training class priors.
-    """
+    """Always predicts the most frequent class, our accuracy floor."""
 
     def __init__(self) -> None:
         self.classes_: list[str] = []
@@ -73,16 +53,8 @@ class NaiveBaseline:
             return pickle.load(fh)
 
 
-# ===========================================================================
-# 2. Classical ML  -  TF-IDF + Logistic Regression
-# ===========================================================================
 class ClassicalModel:
-    """TF-IDF word n-grams feeding a class-weighted multinomial LogReg.
-
-    Chosen for a strong, fast, and *interpretable* baseline: the linear
-    coefficients let us name the exact tokens that push a complaint toward each
-    component, which powers the app's word-level explanations.
-    """
+    """TF-IDF n-grams into a class-weighted LogReg, fast and interpretable."""
 
     def __init__(self, C: float = 3.0, max_features: int = 40000, ngram_max: int = 2) -> None:
         self.C = C
@@ -156,9 +128,6 @@ class ClassicalModel:
             return pickle.load(fh)
 
 
-# ===========================================================================
-# 3. Deep learning  -  TextCNN over learned embeddings
-# ===========================================================================
 _TOKEN_RE = re.compile(r"[a-z0-9]+(?:[-/][a-z0-9]+)*")
 PAD, UNK = "<pad>", "<unk>"
 
@@ -178,14 +147,7 @@ def _select_device():
 
 
 class TextCNNModel:
-    """CNN text classifier with from-scratch word embeddings (Kim 2014).
-
-    Parallel convolution filters of widths 3/4/5 act as learned n-gram
-    detectors; max-over-time pooling keeps the strongest activation per filter.
-    Trained end-to-end with class-weighted cross-entropy and early stopping on
-    validation macro-F1. Small enough (a few MB) to commit and to run inference
-    on CPU, so the deployed app is fully self-contained.
-    """
+    """TextCNN classifier over word embeddings, TextCNN, Kim 2014."""
 
     def __init__(
         self,
@@ -209,7 +171,7 @@ class TextCNNModel:
             lr=lr, batch_size=batch_size, max_epochs=max_epochs, patience=patience,
             pretrained=pretrained, seed=seed,
         )
-        self._emb_matrix = None  # populated from GloVe at fit time
+        self._emb_matrix = None
         self.glove_coverage: float | None = None
         self.vocab: dict[str, int] = {}
         self.classes_: list[str] = []
@@ -217,7 +179,6 @@ class TextCNNModel:
         self.device = None
         self.history: list[dict] = []
 
-    # ---- vocab / encoding -------------------------------------------------
     def _build_vocab(self, texts) -> None:
         counter: Counter = Counter()
         for t in texts:
@@ -242,7 +203,7 @@ class TextCNNModel:
         return torch.from_numpy(arr)
 
     def _maybe_load_pretrained(self) -> None:
-        """Build a GloVe-initialised embedding matrix for the current vocab."""
+        """Build a GloVe-initialised embedding matrix for the vocab."""
         if not self.cfg.get("pretrained"):
             return
         try:
@@ -257,7 +218,6 @@ class TextCNNModel:
         self._emb_matrix = matrix
         self.glove_coverage = coverage
 
-    # ---- torch module -----------------------------------------------------
     def _build_net(self, n_classes: int):
         import torch
         import torch.nn as nn
@@ -271,7 +231,7 @@ class TextCNNModel:
                 self.embed = nn.Embedding(vocab_size, cfg["embed_dim"], padding_idx=0)
                 if emb_matrix is not None:
                     self.embed.weight.data.copy_(torch.from_numpy(emb_matrix))
-                    self.embed.weight.data[0].zero_()  # keep <pad> at zero
+                    self.embed.weight.data[0].zero_()
                 self.convs = nn.ModuleList(
                     [nn.Conv1d(cfg["embed_dim"], cfg["num_filters"], k) for k in cfg["kernel_sizes"]]
                 )
@@ -282,14 +242,13 @@ class TextCNNModel:
                 import torch
                 import torch.nn.functional as F
 
-                emb = self.embed(x).transpose(1, 2)  # (B, embed, T)
+                emb = self.embed(x).transpose(1, 2)
                 feats = [F.relu(conv(emb)).max(dim=2).values for conv in self.convs]
                 out = self.dropout(torch.cat(feats, dim=1))
                 return self.fc(out)
 
         return _Net(len(self.vocab))
 
-    # ---- training ---------------------------------------------------------
     def fit(self, texts, labels, val_texts=None, val_labels=None, verbose: bool = True) -> "TextCNNModel":
         import torch
         import torch.nn as nn
@@ -334,12 +293,11 @@ class TextCNNModel:
                 opt.step()
                 total_loss += float(loss.detach()) * len(idx)
 
-            # validation-driven early stopping on macro-F1
             if val_texts is not None:
                 val_pred = self.predict(val_texts)
                 f1 = f1_score(val_labels, val_pred, average="macro")
             else:
-                f1 = -total_loss / n  # fall back to (neg) train loss
+                f1 = -total_loss / n
             self.history.append({"epoch": epoch, "train_loss": total_loss / n, "val_macro_f1": float(f1)})
             if verbose:
                 print(f"    epoch {epoch:2d}  loss={total_loss / n:.4f}  val_macroF1={f1:.4f}")
@@ -359,7 +317,6 @@ class TextCNNModel:
             self.net.load_state_dict(best_state)
         return self
 
-    # ---- inference --------------------------------------------------------
     def _logits(self, texts):
         import torch
 
@@ -384,11 +341,7 @@ class TextCNNModel:
         return np.array([self.classes_[i] for i in idx])
 
     def explain(self, text: str, k: int = 8, max_tokens: int = 80) -> list[tuple[str, float]]:
-        """Leave-one-token-out saliency for the predicted class.
-
-        All single-token deletions are scored in one batched forward pass, so the
-        explanation stays fast enough for the interactive app.
-        """
+        """Leave-one-token-out saliency for the predicted class."""
         toks = tokenize(text)[:max_tokens]
         if not toks:
             return []
@@ -401,7 +354,6 @@ class TextCNNModel:
             scores[tok] = max(scores.get(tok, 0.0), float(base[pred] - p))
         return sorted(scores.items(), key=lambda p: p[1], reverse=True)[:k]
 
-    # ---- persistence ------------------------------------------------------
     def save(self, path) -> None:
         import torch
 
