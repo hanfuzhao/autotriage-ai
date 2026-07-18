@@ -6,14 +6,14 @@
   <title>AutoTriage AI, Vehicle Complaint Component Classifier</title>
   <meta name="description" content="Route any vehicle safety complaint to the right engineering system in seconds, using NLP trained on real NHTSA complaint narratives." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
   <header class="nav">
     <div class="nav-inner">
       <div class="brand">
-        <div class="brand-mark">◈</div>
+        <div class="brand-mark">AT</div>
         <div class="brand-text">
           <span class="brand-name">AutoTriage <span class="accent">AI</span></span>
           <span class="brand-sub">NHTSA complaint to component classifier</span>
@@ -28,12 +28,13 @@
 
   <section class="hero">
     <div class="hero-inner">
-      <h1>Every safety complaint, routed to the right system in seconds.</h1>
+      <h1>I trained three models to read <span class="u">messy car complaints</span>. Try them.</h1>
       <p class="lede">
-        Owners describe problems in plain words, like "the brakes went to the floor" or
-        "phantom braking on the highway". AutoTriage reads that narrative and predicts
-        which of the {{ labels|length }} vehicle systems it belongs to, so safety teams
-        stop triaging by hand. Trained on <strong>real NHTSA complaint narratives</strong>.
+        Owners write things like "the brakes went to the floor" or "it brakes by itself on
+        the highway". Paste one below and each model guesses which of the
+        {{ labels|length }} car systems it is about. The neural net is the one I actually
+        ship. The other two are here so you can watch them agree, or disagree, on the same
+        text. Everything is trained on <strong>real NHTSA owner complaints</strong>.
       </p>
       <div class="stat-strip" id="statStrip">
         <div class="stat"><span class="stat-num" id="statClasses">{{ labels|length }}</span><span class="stat-label">component classes</span></div>
@@ -76,8 +77,8 @@
     <!-- RESULTS -->
     <div class="card result-card" id="resultCard">
       <div class="empty-state" id="emptyState">
-        <div class="empty-icon">◎</div>
-        <p>Enter a complaint and hit <strong>Analyze</strong> to see the predicted component, confidence, and the words that drove the decision.</p>
+        <div class="empty-icon">?</div>
+        <p>Pick an example or paste your own, then hit <strong>Analyze</strong>. You will see the predicted system, how sure the model is, and which words it leaned on.</p>
       </div>
 
       <div class="result-body" id="resultBody" hidden>

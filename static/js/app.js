@@ -116,7 +116,7 @@
     const conf = data.confidence || 0;
     el.ring.style.strokeDasharray = RING_CIRC;
     el.ring.style.strokeDashoffset = RING_CIRC * (1 - conf);
-    el.ring.style.stroke = tier === "critical" ? "#ff5d6c" : tier === "high" ? "#f4b740" : "#4cc9f0";
+    el.ring.style.stroke = tier === "critical" ? "#a81f1a" : tier === "high" ? "#9c5410" : "#4d7a1e";
     el.confNum.textContent = pct(conf);
     el.predLabel.textContent = data.prediction;
     el.modelUsed.textContent = `via ${MODEL_NAMES[data.model] || data.model}`;
@@ -151,7 +151,7 @@
       div.innerHTML = `<div class="cmp-model">${k}</div>
         <div class="cmp-pred">${c.prediction}</div>
         <div class="cmp-conf">${pct(c.confidence)}</div>
-        ${k === data.model ? '<div class="cmp-badge">◄ selected</div>' : '<div class="cmp-badge">&nbsp;</div>'}`;
+        ${k === data.model ? '<div class="cmp-badge">shown above</div>' : '<div class="cmp-badge">&nbsp;</div>'}`;
       el.compare.appendChild(div);
     });
   }
@@ -166,8 +166,8 @@
       const key = word.toLowerCase().replace(/[^a-z0-9/\-]/g, "");
       const w = weightOf[key];
       if (w && w > 0) {
-        const alpha = 0.18 + 0.6 * (w / maxW);
-        return `<span class="tok" style="background: rgba(76,201,240,${alpha.toFixed(2)}); color:#04222a; font-weight:600">${esc(word)}</span>`;
+        const alpha = 0.12 + 0.42 * (w / maxW);
+        return `<span class="tok" style="background: rgba(191,74,28,${alpha.toFixed(2)}); color:#221d15; font-weight:600">${esc(word)}</span>`;
       }
       return esc(word);
     }).join("");
