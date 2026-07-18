@@ -1,0 +1,579 @@
+{
+  "meta": {
+    "generated_at": "2026-07-18T05:35:23.635610+00:00",
+    "seed": 42,
+    "fast_mode": false,
+    "runtime_seconds": 629.9,
+    "dataset": {
+      "total": 37342,
+      "train": 26138,
+      "val": 5602,
+      "test": 5602,
+      "n_classes": 14,
+      "class_counts": {
+        "ENGINE": 3500,
+        "AIR BAGS": 3500,
+        "STEERING": 3500,
+        "STRUCTURE": 3500,
+        "ELECTRICAL SYSTEM": 3500,
+        "SERVICE BRAKES": 3500,
+        "POWER TRAIN": 3500,
+        "FUEL/PROPULSION SYSTEM": 2592,
+        "VISIBILITY/WIPER": 2472,
+        "EXTERIOR LIGHTING": 1877,
+        "VEHICLE SPEED CONTROL": 1657,
+        "SEATS/SEAT BELTS": 1554,
+        "SUSPENSION": 1456,
+        "DRIVER ASSISTANCE (ADAS)": 1234
+      }
+    },
+    "eda": {
+      "n_examples": 37342,
+      "n_classes": 14,
+      "class_counts": {
+        "ENGINE": 3500,
+        "SERVICE BRAKES": 3500,
+        "STEERING": 3500,
+        "STRUCTURE": 3500,
+        "AIR BAGS": 3500,
+        "POWER TRAIN": 3500,
+        "ELECTRICAL SYSTEM": 3500,
+        "FUEL/PROPULSION SYSTEM": 2592,
+        "VISIBILITY/WIPER": 2472,
+        "EXTERIOR LIGHTING": 1877,
+        "VEHICLE SPEED CONTROL": 1657,
+        "SEATS/SEAT BELTS": 1554,
+        "SUSPENSION": 1456,
+        "DRIVER ASSISTANCE (ADAS)": 1234
+      },
+      "imbalance_ratio": 2.8363047001620747,
+      "words_mean": 100.11343795190402,
+      "words_median": 83.0,
+      "words_p90": 195.0,
+      "crash_rate": 0.06360130683948369,
+      "fire_rate": 0.011274168496599004,
+      "injury_rate": 0.04099941085105244
+    },
+    "labels": [
+      "ELECTRICAL SYSTEM",
+      "ENGINE",
+      "POWER TRAIN",
+      "STEERING",
+      "SERVICE BRAKES",
+      "FUEL/PROPULSION SYSTEM",
+      "AIR BAGS",
+      "DRIVER ASSISTANCE (ADAS)",
+      "EXTERIOR LIGHTING",
+      "VISIBILITY/WIPER",
+      "STRUCTURE",
+      "VEHICLE SPEED CONTROL",
+      "SUSPENSION",
+      "SEATS/SEAT BELTS"
+    ]
+  },
+  "models": {
+    "naive": {
+      "accuracy": 0.09371652981078187,
+      "macro_f1": 0.01224090093030847,
+      "weighted_f1": 0.016060446597245138,
+      "per_class": {
+        "ELECTRICAL SYSTEM": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 525
+        },
+        "ENGINE": {
+          "precision": 0.09371652981078187,
+          "recall": 1.0,
+          "f1": 0.17137261302431858,
+          "support": 525
+        },
+        "POWER TRAIN": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 525
+        },
+        "STEERING": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 525
+        },
+        "SERVICE BRAKES": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 525
+        },
+        "FUEL/PROPULSION SYSTEM": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 389
+        },
+        "AIR BAGS": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 525
+        },
+        "DRIVER ASSISTANCE (ADAS)": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 185
+        },
+        "EXTERIOR LIGHTING": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 282
+        },
+        "VISIBILITY/WIPER": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 371
+        },
+        "STRUCTURE": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 525
+        },
+        "VEHICLE SPEED CONTROL": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 249
+        },
+        "SUSPENSION": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 218
+        },
+        "SEATS/SEAT BELTS": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 233
+        }
+      }
+    },
+    "classical": {
+      "accuracy": 0.7743662977508032,
+      "macro_f1": 0.7683575463050014,
+      "weighted_f1": 0.775397385407559,
+      "per_class": {
+        "ELECTRICAL SYSTEM": {
+          "precision": 0.6016427104722792,
+          "recall": 0.5580952380952381,
+          "f1": 0.5790513833992095,
+          "support": 525
+        },
+        "ENGINE": {
+          "precision": 0.7253521126760564,
+          "recall": 0.7847619047619048,
+          "f1": 0.7538883806038427,
+          "support": 525
+        },
+        "POWER TRAIN": {
+          "precision": 0.7107750472589792,
+          "recall": 0.7161904761904762,
+          "f1": 0.713472485768501,
+          "support": 525
+        },
+        "STEERING": {
+          "precision": 0.885593220338983,
+          "recall": 0.7961904761904762,
+          "f1": 0.8385155466399198,
+          "support": 525
+        },
+        "SERVICE BRAKES": {
+          "precision": 0.8275154004106776,
+          "recall": 0.7676190476190476,
+          "f1": 0.7964426877470355,
+          "support": 525
+        },
+        "FUEL/PROPULSION SYSTEM": {
+          "precision": 0.8031088082901554,
+          "recall": 0.7969151670951157,
+          "f1": 0.8,
+          "support": 389
+        },
+        "AIR BAGS": {
+          "precision": 0.9,
+          "recall": 0.9085714285714286,
+          "f1": 0.9042654028436019,
+          "support": 525
+        },
+        "DRIVER ASSISTANCE (ADAS)": {
+          "precision": 0.5954545454545455,
+          "recall": 0.7081081081081081,
+          "f1": 0.6469135802469136,
+          "support": 185
+        },
+        "EXTERIOR LIGHTING": {
+          "precision": 0.8857142857142857,
+          "recall": 0.8794326241134752,
+          "f1": 0.8825622775800712,
+          "support": 282
+        },
+        "VISIBILITY/WIPER": {
+          "precision": 0.8387909319899244,
+          "recall": 0.8975741239892183,
+          "f1": 0.8671875,
+          "support": 371
+        },
+        "STRUCTURE": {
+          "precision": 0.8623481781376519,
+          "recall": 0.8114285714285714,
+          "f1": 0.8361138370951914,
+          "support": 525
+        },
+        "VEHICLE SPEED CONTROL": {
+          "precision": 0.4863013698630137,
+          "recall": 0.570281124497992,
+          "f1": 0.5249537892791127,
+          "support": 249
+        },
+        "SUSPENSION": {
+          "precision": 0.7181818181818181,
+          "recall": 0.7247706422018348,
+          "f1": 0.7214611872146118,
+          "support": 218
+        },
+        "SEATS/SEAT BELTS": {
+          "precision": 0.8791666666666667,
+          "recall": 0.9055793991416309,
+          "f1": 0.8921775898520085,
+          "support": 233
+        }
+      }
+    },
+    "deep": {
+      "accuracy": 0.7713316672616922,
+      "macro_f1": 0.761536658671016,
+      "weighted_f1": 0.7699713075838407,
+      "per_class": {
+        "ELECTRICAL SYSTEM": {
+          "precision": 0.6437054631828979,
+          "recall": 0.5161904761904762,
+          "f1": 0.572938689217759,
+          "support": 525
+        },
+        "ENGINE": {
+          "precision": 0.7632575757575758,
+          "recall": 0.7676190476190476,
+          "f1": 0.7654320987654321,
+          "support": 525
+        },
+        "POWER TRAIN": {
+          "precision": 0.6860902255639098,
+          "recall": 0.6952380952380952,
+          "f1": 0.6906338694418165,
+          "support": 525
+        },
+        "STEERING": {
+          "precision": 0.8606060606060606,
+          "recall": 0.8114285714285714,
+          "f1": 0.8352941176470589,
+          "support": 525
+        },
+        "SERVICE BRAKES": {
+          "precision": 0.8054474708171206,
+          "recall": 0.7885714285714286,
+          "f1": 0.7969201154956689,
+          "support": 525
+        },
+        "FUEL/PROPULSION SYSTEM": {
+          "precision": 0.7676056338028169,
+          "recall": 0.8406169665809768,
+          "f1": 0.8024539877300614,
+          "support": 389
+        },
+        "AIR BAGS": {
+          "precision": 0.9035916824196597,
+          "recall": 0.9104761904761904,
+          "f1": 0.9070208728652751,
+          "support": 525
+        },
+        "DRIVER ASSISTANCE (ADAS)": {
+          "precision": 0.5648148148148148,
+          "recall": 0.6594594594594595,
+          "f1": 0.6084788029925187,
+          "support": 185
+        },
+        "EXTERIOR LIGHTING": {
+          "precision": 0.840531561461794,
+          "recall": 0.8971631205673759,
+          "f1": 0.8679245283018868,
+          "support": 282
+        },
+        "VISIBILITY/WIPER": {
+          "precision": 0.8099762470308789,
+          "recall": 0.9191374663072777,
+          "f1": 0.8611111111111112,
+          "support": 371
+        },
+        "STRUCTURE": {
+          "precision": 0.8574380165289256,
+          "recall": 0.7904761904761904,
+          "f1": 0.8225966303270565,
+          "support": 525
+        },
+        "VEHICLE SPEED CONTROL": {
+          "precision": 0.5212355212355212,
+          "recall": 0.5421686746987951,
+          "f1": 0.531496062992126,
+          "support": 249
+        },
+        "SUSPENSION": {
+          "precision": 0.6804979253112033,
+          "recall": 0.7522935779816514,
+          "f1": 0.7145969498910676,
+          "support": 218
+        },
+        "SEATS/SEAT BELTS": {
+          "precision": 0.8808510638297873,
+          "recall": 0.8884120171673819,
+          "f1": 0.8846153846153846,
+          "support": 233
+        }
+      }
+    }
+  },
+  "experiments": {
+    "training_size": {
+      "sizes": [
+        1306,
+        2613,
+        6534,
+        13069,
+        26138
+      ],
+      "fractions": [
+        0.05,
+        0.1,
+        0.25,
+        0.5,
+        1.0
+      ],
+      "curves": {
+        "Naive": [
+          0.01224090093030847,
+          0.01224090093030847,
+          0.01224090093030847,
+          0.01224090093030847,
+          0.01224090093030847
+        ],
+        "Classical (TF-IDF+LogReg)": [
+          0.7065731651074081,
+          0.7258606880488727,
+          0.7481883502467808,
+          0.7623088483530521,
+          0.7683575463050014
+        ],
+        "Deep (TextCNN)": [
+          0.7061923457674144,
+          0.7319268849204603,
+          0.7532613875549216,
+          0.762252051502775,
+          0.7646406890125127
+        ]
+      }
+    },
+    "robustness": {
+      "levels": [
+        0.0,
+        0.05,
+        0.1,
+        0.2,
+        0.3
+      ],
+      "curves": {
+        "Classical (TF-IDF+LogReg)": [
+          0.7683575463050014,
+          0.724085094221724,
+          0.6838089678408391,
+          0.5554609887729834,
+          0.4178589271933114
+        ],
+        "Deep (TextCNN)": [
+          0.761536658671016,
+          0.7035707631046793,
+          0.6174439787073958,
+          0.43059193395198186,
+          0.2764915592397194
+        ]
+      }
+    },
+    "confidence_gating": [
+      {
+        "threshold": 0.0,
+        "coverage": 1.0,
+        "accuracy": 0.7713316672616922
+      },
+      {
+        "threshold": 0.3,
+        "coverage": 0.9744734023563013,
+        "accuracy": 0.7823777248580326
+      },
+      {
+        "threshold": 0.4,
+        "coverage": 0.9389503748661192,
+        "accuracy": 0.8005703422053232
+      },
+      {
+        "threshold": 0.5,
+        "coverage": 0.8884327026062121,
+        "accuracy": 0.8217801888687964
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.8268475544448411,
+        "accuracy": 0.8447754749568221
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.7654409139593003,
+        "accuracy": 0.8640391791044776
+      },
+      {
+        "threshold": 0.8,
+        "coverage": 0.7006426276329882,
+        "accuracy": 0.8884076433121019
+      },
+      {
+        "threshold": 0.9,
+        "coverage": 0.5996072831131739,
+        "accuracy": 0.9118785352783566
+      }
+    ],
+    "head_tail": {
+      "classical": {
+        "head_classes": [
+          "ENGINE",
+          "AIR BAGS",
+          "STEERING",
+          "STRUCTURE",
+          "ELECTRICAL SYSTEM"
+        ],
+        "tail_classes": [
+          "SERVICE BRAKES",
+          "POWER TRAIN",
+          "FUEL/PROPULSION SYSTEM",
+          "VISIBILITY/WIPER",
+          "EXTERIOR LIGHTING",
+          "VEHICLE SPEED CONTROL",
+          "SEATS/SEAT BELTS",
+          "SUSPENSION",
+          "DRIVER ASSISTANCE (ADAS)"
+        ],
+        "head_macro_f1": 0.7823669101163531,
+        "tail_macro_f1": 0.7605745664098059
+      },
+      "deep": {
+        "head_classes": [
+          "ENGINE",
+          "AIR BAGS",
+          "STEERING",
+          "STRUCTURE",
+          "ELECTRICAL SYSTEM"
+        ],
+        "tail_classes": [
+          "SERVICE BRAKES",
+          "POWER TRAIN",
+          "FUEL/PROPULSION SYSTEM",
+          "VISIBILITY/WIPER",
+          "EXTERIOR LIGHTING",
+          "VEHICLE SPEED CONTROL",
+          "SEATS/SEAT BELTS",
+          "SUSPENSION",
+          "DRIVER ASSISTANCE (ADAS)"
+        ],
+        "head_macro_f1": 0.7806564817645164,
+        "tail_macro_f1": 0.7509145347301824
+      }
+    }
+  },
+  "errors": {
+    "deployed": [
+      {
+        "text": "the rear racetrack lighting on my 2014 durango takes on water when raining causing rear deck lighting to fail dealer refuses to address issue and has no knowledge of issue i am constantly draining water out of rear light racetrack",
+        "true": "ELECTRICAL SYSTEM",
+        "pred": "EXTERIOR LIGHTING",
+        "confidence": 0.9998593330383301
+      },
+      {
+        "text": "2014 subaru forester the srs airbag light has come on i took the vehicle to the local subaru dealership and they claim the cause is a sensor within the passenger seat being broken this is a safety concern and should be reviewed",
+        "true": "ELECTRICAL SYSTEM",
+        "pred": "AIR BAGS",
+        "confidence": 0.999821126461029
+      },
+      {
+        "text": "the contact owns a 2014 ford focus the contact stated a week after purchasing the vehicle the check engine light illuminated the contact also stated while driving at approximately 55 mph he started smelling gasoline in the cabin of the vehicle and pulled over to address the failure the contact stated he placed a rubber hose over the gas line the contact also mentioned that the vehicle had faulty w",
+        "true": "ELECTRICAL SYSTEM",
+        "pred": "FUEL/PROPULSION SYSTEM",
+        "confidence": 0.9998131394386292
+      },
+      {
+        "text": "have a noise on front passenger side suspension",
+        "true": "STEERING",
+        "pred": "SUSPENSION",
+        "confidence": 0.999803364276886
+      },
+      {
+        "text": "a lady ran a red light and t-boned my chevy malibu on the drivers side as i was proceeding through the intersection airbags did not deploy my head slammed in to the drivers side window drivers side door was smashed in the car had to be towed because it couldn t be driven i have a concussion that s lasted for 2 weeks and body pain from the accident shouldn t the airbags have deployed",
+        "true": "STRUCTURE",
+        "pred": "AIR BAGS",
+        "confidence": 0.9995526671409607
+      },
+      {
+        "text": "takata inflators car crashed for unknown reasons injured 3 children outside the car and not one airbag deployed",
+        "true": "STEERING",
+        "pred": "AIR BAGS",
+        "confidence": 0.9995154142379761
+      },
+      {
+        "text": "the front lights are extremely bright for other drivers on the road it is so bad that i took it into the dealership/service department to get them checked out i was told that there is no issue with the lights and other drivers are not use to the led lights being installed into newer vehicles i can see three blocks in front of me as far up into the trees i rarely drive at night because i am constan",
+        "true": "VISIBILITY/WIPER",
+        "pred": "EXTERIOR LIGHTING",
+        "confidence": 0.9995131492614746
+      },
+      {
+        "text": "my apillar molding piece flew off the passenger side of my wind shield i m scared the other side will do the same thing and i don t want anyone to get hurt but i have to use my car i have been waiting 6 months for the parts also whenever it rains my floorboards flood from water leaking through my windshield and could possibly get into my electronics as well",
+        "true": "VISIBILITY/WIPER",
+        "pred": "STRUCTURE",
+        "confidence": 0.9994845390319824
+      },
+      {
+        "text": "called the dealership at commonwealth motors and all other dealership to take care of the recall as that is the only reason why i am a unable to pass inspection dealer ships all around said the part for the takata airbag recall is not in stock and will not be available till december 2025",
+        "true": "STEERING",
+        "pred": "AIR BAGS",
+        "confidence": 0.9993453621864319
+      },
+      {
+        "text": "rear trail arm bushings are gone on both sides",
+        "true": "STEERING",
+        "pred": "SUSPENSION",
+        "confidence": 0.9991658926010132
+      },
+      {
+        "text": "my headlights keep going very dimmed and brake lights consistently burning out in my car i am replacing them every couple of months this has been going on over a year",
+        "true": "ELECTRICAL SYSTEM",
+        "pred": "EXTERIOR LIGHTING",
+        "confidence": 0.9991198182106018
+      },
+      {
+        "text": "several system failures relates to a faulty multipurpose camera used by the honda sensing system from collision avoidance adaptive cruise control and land keeping assist multipurpose camera premature failure leads to loss of several safety features",
+        "true": "SERVICE BRAKES",
+        "pred": "DRIVER ASSISTANCE (ADAS)",
+        "confidence": 0.9990348815917969
+      }
+    ]
+  }
+}

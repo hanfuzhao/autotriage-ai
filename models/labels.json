@@ -1,0 +1,19 @@
+{
+  "classes": [
+    "ELECTRICAL SYSTEM",
+    "ENGINE",
+    "POWER TRAIN",
+    "STEERING",
+    "SERVICE BRAKES",
+    "FUEL/PROPULSION SYSTEM",
+    "AIR BAGS",
+    "DRIVER ASSISTANCE (ADAS)",
+    "EXTERIOR LIGHTING",
+    "VISIBILITY/WIPER",
+    "STRUCTURE",
+    "VEHICLE SPEED CONTROL",
+    "SUSPENSION",
+    "SEATS/SEAT BELTS"
+  ],
+  "deployed_model": "deep"
+}
