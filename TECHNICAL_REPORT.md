@@ -20,7 +20,7 @@ Beyond raw accuracy we contribute an interpretable, deployment-oriented system. 
 app names the words driving each prediction, attaches a safety-tier routing action,
 and abstains below a confidence threshold. A focused experiment on training-set-size
 sensitivity quantifies the cold-start regime a safety team faces when a newly tracked
-model launches. Both real models reach ≈0.77 macro-F1 against a 0.01 naive floor. GloVe
+model launches. Both real models reach about 0.77 macro-F1 against a 0.01 naive floor. GloVe
 transfer learning is what lifts the neural model from clearly behind the classical
 baseline up to parity, and it closes the cold-start gap entirely.
 
@@ -65,10 +65,10 @@ make, model, and model-year it returns every filed complaint with a free-text `s
 comma-separated `components` field, and safety flags for crash, fire, injuries, and
 deaths. NHTSA data is a U.S. Government work in the public domain.
 
-**Collection.** `scripts/make_dataset.py` crawls a diverse grid of 14 makes ×
-popular models × 4 model-years, using 2014/2017/2020 plus per-make model resolution via the
-products endpoint. It streams results to disk and de-duplicates by complaint ID
-`odiNumber`. The diversity is deliberate. Sampling many manufacturers and years
+**Collection.** `scripts/make_dataset.py` crawls 14 makes and their popular models
+across three model-years, 2014, 2017, and 2020, resolving the exact model names per make
+through the products endpoint. It streams results to disk and de-duplicates by complaint
+ID `odiNumber`. The diversity is deliberate. Sampling many manufacturers and years
 keeps any single recall event from dominating the component distribution, and it
 exposes the model to varied phrasing. The raw crawl collected **77,552 unique
 complaints**.
@@ -87,7 +87,7 @@ words, and capping each class at 3,500 examples to bound head-class dominance, w
 retain **37,342 labelled complaints across 14 classes**. Narratives average 100
 words, with a median of 83. The distribution is long-tailed. Seven head classes sit at the
 3,500 cap while the smallest, `DRIVER ASSISTANCE (ADAS)`, has 1,234. That is an imbalance
-ratio of ≈ 2.8×. We split **70 / 15 / 15** stratified by label into
+ratio of about 2.8x. We split **70 / 15 / 15** stratified by label into
 **26,138 train / 5,602 validation / 5,602 test**. A class-balanced 400-row
 `data/raw/sample.csv` is committed for inspection, and the full corpus is reproducible
 from the API via `make data`.
@@ -125,7 +125,7 @@ components rather than headline accuracy. Third, it delivers an interpretable,
 deployment-ready triage tool with word-level explanations, safety-tier routing, and
 confidence-gated abstention, instead of a black-box label. Our aim is greater insight
 and usability rather than chasing the transformer SOTA ceiling, and we discuss that
-trade-off explicitly in §9.
+trade-off explicitly in section 9.
 
 ---
 
@@ -149,7 +149,7 @@ follows directly from the long-tailed label distribution.
   confused turns out to matter (see Error Analysis).
 - **Deployment metrics.** Because a triage system can defer uncertain cases to a
   human, we also measure accuracy against coverage under confidence-gated
-  abstention (§7.3).
+  abstention (section 7.3).
 
 All models are selected and tuned on the validation split, then reported once on the
 untouched test split. The deep model's early stopping is driven by validation
@@ -212,10 +212,10 @@ The CNN learns phrase-level, order-sensitive cues like "lost power" and "goes to
 the floor" that bag-of-words misses. The GloVe initialisation is a lightweight
 form of transfer learning. It injects general-language knowledge the model cannot
 learn from ~26k complaints alone, and that is what lifts it from clearly behind the
-classical baseline up to parity with it (§6). The pretrained vectors are needed only at
+classical baseline up to parity with it (section 6). The pretrained vectors are needed only at
 training time. The learned embedding matrix is baked into the ~15 MB `.pt`, so the
 deployed model stays tiny, CPU-fast, and fully self-contained. We use GloVe rather than
-fine-tuning a large transformer to keep the system lightweight and deployable, and §9
+fine-tuning a large transformer to keep the system lightweight and deployable, and section 9
 discusses that trade-off.
 
 ### 5.3 Hyperparameter tuning strategy
@@ -227,7 +227,7 @@ moderately low `C` for generalisation, with `class_weight="balanced"` fixed by t
 imbalance. For the TextCNN, filter widths {2,3,4,5} and a count of 160 follow Kim
 (2014)'s well-established design. The biggest lever we found was the embedding
 initialisation. Switching from random to pretrained GloVe (200-d) added roughly two
-macro-F1 points, and helped most in the low-data regime (§7). We also probed embedding
+macro-F1 points, and helped most in the low-data regime (section 7). We also probed embedding
 dimension and vocabulary cut-off. An enhanced-capacity variant with mean+max pooling plus a
 hidden layer, and a larger `min_freq=1` vocabulary, each slightly hurt on validation,
 so we kept the simpler, better-generalising design. Dropout of 0.4, Adam at 1e-3, and
@@ -259,7 +259,7 @@ which is exactly what TF-IDF captures best. See `data/outputs/plots/model_compar
 ### 6.2 Per-class performance
 
 Both models are well-balanced across the long tail. The head/tail F1 gap is only
-~0.02-0.03 (§7.4), a payoff from capping head classes and class-weighting. Per-class
+~0.02-0.03 (section 7.4), a payoff from capping head classes and class-weighting. Per-class
 F1 for the deployed deep model ranges from strong to hard:
 
 - **Easiest:** AIR BAGS 0.91, SEATS/SEAT BELTS 0.88, EXTERIOR LIGHTING 0.87,
@@ -270,9 +270,9 @@ F1 for the deployed deep model ranges from strong to hard:
 ### 6.3 What gets confused (and why)
 
 The dominant confusions, from `confusion_deep.png`, are all semantically adjacent
-systems: ENGINE ↔ POWER TRAIN with 87 test cases in both directions, POWER TRAIN ↔
-ELECTRICAL SYSTEM at 72, STRUCTURE ↔ VISIBILITY/WIPER at 48, SERVICE BRAKES ↔ ADAS at 33,
-STEERING ↔ SUSPENSION at 28, and ENGINE ↔ FUEL/PROPULSION at 28. "Electrical system" is the
+systems: ENGINE vs POWER TRAIN with 87 test cases in both directions, POWER TRAIN  vs 
+ELECTRICAL SYSTEM at 72, STRUCTURE vs VISIBILITY/WIPER at 48, SERVICE BRAKES vs ADAS at 33,
+STEERING vs SUSPENSION at 28, and ENGINE vs FUEL/PROPULSION at 28. "Electrical system" is the
 worst offender because it is a genuine catch-all that co-occurs with almost everything,
 as in "check engine light" or "sensor fault". These are not random errors. They mirror real
 ambiguity in how a symptom maps to a subsystem, which motivates the error analysis and
@@ -350,7 +350,7 @@ rare-but-critical systems from being neglected.
 
 ## 8. Error Analysis
 
-We surfaced the deployed model's most confident mistakes, all at ≈1.00 confidence.
+We surfaced the deployed model's most confident mistakes, all at about 1.00 confidence.
 These are the dangerous kind, where the model is both wrong and sure. Here are five representative cases.
 
 1. **"noise on front passenger side suspension"**, *true: STEERING, pred: SUSPENSION.*
@@ -406,7 +406,7 @@ decision-maker. Concretely:
   reviewers who have to justify their decisions.
 - **Why not fully autonomous.** Safety is high-stakes and the tail classes are the ones
   that matter most. At ~0.77 macro-F1 the model is a productivity multiplier, not a
-  replacement for expert judgement. The confidence-gating result (§7) is the mechanism
+  replacement for expert judgement. The confidence-gating result (section 7) is the mechanism
   that makes this safe: answer automatically only where the model is reliable.
 - **The model-choice trade-off.** Our evaluation shows a strong classical baseline is
   on par with the neural model, so a lean production system could ship the classical
