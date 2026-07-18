@@ -96,6 +96,8 @@ The 14 classes: ELECTRICAL SYSTEM, ENGINE, POWER TRAIN, STEERING, SERVICE BRAKES
 FUEL/PROPULSION SYSTEM, AIR BAGS, DRIVER ASSISTANCE (ADAS), EXTERIOR LIGHTING,
 VISIBILITY/WIPER, STRUCTURE, VEHICLE SPEED CONTROL, SUSPENSION, SEATS/SEAT BELTS.
 
+![Component class distribution. The data is long-tailed, which is why we report macro-F1.](data/outputs/plots/class_distribution.png)
+
 ---
 
 ## 3. Related Work
@@ -254,7 +256,9 @@ tie: 0.768 vs 0.762 macro-F1 and 0.774 vs 0.771 accuracy, a difference within ru
 noise. With GloVe transfer learning the neural model reaches
 parity with a very strong linear baseline, but it does not surpass it. The
 component signal is largely lexical, with words like "brake", "airbag", and "steering",
-which is exactly what TF-IDF captures best. See `data/outputs/plots/model_comparison.png`.
+which is exactly what TF-IDF captures best.
+
+![Accuracy, macro-F1, and weighted-F1 for the three models on the test set.](data/outputs/plots/model_comparison.png)
 
 ### 6.2 Per-class performance
 
@@ -277,6 +281,8 @@ worst offender because it is a genuine catch-all that co-occurs with almost ever
 as in "check engine light" or "sensor fault". These are not random errors. They mirror real
 ambiguity in how a symptom maps to a subsystem, which motivates the error analysis and
 the multi-label direction in future work.
+
+![Row-normalised confusion matrix for the deployed deep model. The bright off-diagonal cells are the adjacent systems it confuses.](data/outputs/plots/confusion_deep.png)
 
 ## 7. Experiment Write-Up
 
@@ -303,7 +309,9 @@ was starved for data. With GloVe transfer learning that gap disappears. At 1,306
 examples the two are tied, 0.706 vs 0.707, and in the mid-data regime the deep model
 actually edges ahead, 0.732 vs 0.726 at 2.6k and 0.753 vs 0.748 at 6.5k. Both curves
 are still rising gently at full data, with the classical model finishing marginally on
-top. See `data/outputs/plots/learning_curve.png`.
+top.
+
+![Learning curves. With GloVe, the deep model tracks the classical model even at small training sizes.](data/outputs/plots/learning_curve.png)
 
 **Recommendation.** Pretrained embeddings should be treated as mandatory for the neural
 model in any low-resource or cold-start deployment. Without them the classical model is
@@ -325,6 +333,8 @@ CNN vocabulary sends every typo to `<unk>` and discards the signal, whereas TF-I
 n-gram vocabulary degrades more gracefully. This is the strongest argument for the
 classical model, and for the future-work move to subword embeddings.
 
+![Macro-F1 as character noise increases. The classical model holds up better than the word-level CNN.](data/outputs/plots/robustness.png)
+
 ### 7.3 Confidence-gated abstention (deployment triage)
 
 Because a triage system can defer, we sweep a confidence threshold on the deployed
@@ -339,7 +349,9 @@ model: answer only above `t`, route the rest to a human.
 most-confident 77% of complaints reaches 86% accuracy, and the top 60% reach
 **91%**. A production system should auto-route above a tuned threshold and escalate the
 uncertain remainder. That turns a 0.77-accuracy model into a high-precision autorouter
-plus a managed human queue. See `data/outputs/plots/confidence_coverage.png`.
+plus a managed human queue.
+
+![Accuracy against coverage as the confidence threshold rises. Answering fewer, more confident cases lifts accuracy sharply.](data/outputs/plots/confidence_coverage.png)
 
 ### 7.4 Head vs. tail
 
