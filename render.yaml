@@ -1,0 +1,13 @@
+# Render blueprint: one-click deploy of the inference app on the free tier.
+# In the Render dashboard: New + -> Blueprint -> connect this repo -> Apply.
+services:
+  - type: web
+    name: autotriage-ai
+    env: docker
+    region: oregon
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 7860
