@@ -1,0 +1,9 @@
+# Full dependencies: data pipeline, training, evaluation, and the web app.
+# For a lean inference-only deployment image, see requirements-deploy.txt.
+numpy>=1.26
+pandas>=2.0
+scikit-learn>=1.3
+torch>=2.2
+matplotlib>=3.7
+Flask>=3.0
+gunicorn>=21.0

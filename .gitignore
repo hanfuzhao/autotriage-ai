@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Data (raw dump is large + reproducible via the API; keep the committed sample)
+data/raw/nhtsa_complaints.jsonl
+data/processed/*.csv
+
+# Pretrained GloVe vectors (only needed at train time; baked into the .pt)
+data/raw/glove.6B.*.txt
+data/raw/glove.6B.zip
+
+# Notebooks scratch
+.ipynb_checkpoints/
+
+# Keep directory placeholders and the small committed models
+!models/.gitkeep
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/outputs/.gitkeep

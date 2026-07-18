@@ -1,0 +1,9 @@
+# Lean inference-only dependencies for the deployed Space.
+# The TextCNN is trained from scratch (no transformers), and inference runs on
+# CPU, so we install the CPU build of torch to keep the image small.
+--extra-index-url https://download.pytorch.org/whl/cpu
+numpy>=1.26
+scikit-learn>=1.3
+torch>=2.2
+Flask>=3.0
+gunicorn>=21.0
