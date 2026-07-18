@@ -7,6 +7,7 @@ metrics.json and the plots. Trained models go in models/ for the app to serve.
     python setup.py --skip-download # reuse an existing data/raw dump
     python setup.py --no-deep       # skip the neural model
 """
+# Parts of this project were drafted with an AI assistant (Claude) and then reviewed and edited.
 from __future__ import annotations
 
 import argparse

@@ -5,6 +5,7 @@ It loads the three trained models once and only serves inference. Routes are
 and /api/predict which takes {text, model} and returns the prediction, top-k,
 explanation, and triage tier.
 """
+# Parts of this project were drafted with an AI assistant (Claude) and then reviewed and edited.
 from __future__ import annotations
 
 import os

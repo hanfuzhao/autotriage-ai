@@ -141,6 +141,12 @@ mostly to find defects or predict recalls automatically. What this project adds:
 I wrote the code myself and used only standard libraries: scikit-learn, PyTorch, Flask.
 The TextCNN follows Kim 2014. NHTSA data is U.S. public domain.
 
+## Acknowledgments
+
+I built this project for the course. I used an AI coding assistant (Anthropic's Claude)
+to help draft and refactor some of the code and to help edit the writing. I reviewed,
+tested, and edited everything myself before submitting.
+
 ## Data and citations
 
 - NHTSA ODI Complaints API, https://www.nhtsa.gov/nhtsa-datasets-and-apis, public domain
