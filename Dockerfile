@@ -21,5 +21,6 @@ COPY static/ ./static/
 
 EXPOSE 7860
 
-# 1 worker keeps the (small) models in memory once; 2 threads for concurrency.
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers", "1", "--threads", "4", "--timeout", "120", "main:app"]
+# Bind to $PORT so this runs unchanged on HF Spaces (7860), Render, Cloud Run, etc.
+# 1 worker keeps the (small) models in memory once; threads give light concurrency.
+CMD gunicorn --bind 0.0.0.0:${PORT:-7860} --workers 1 --threads 4 --timeout 120 main:app

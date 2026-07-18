@@ -72,18 +72,27 @@ downloads pretrained **GloVe** vectors (~822 MB, once) to initialise its embeddi
 they are needed only at training time and are baked into the committed `.pt`, so the
 deployed app needs neither GloVe nor an internet connection.
 
-## Deployment (Hugging Face Space · Docker)
+## Deployment
 
-The repo ships a `Dockerfile` (CPU-only torch) that serves inference through gunicorn.
+The repo ships a `Dockerfile` (CPU-only torch) that serves inference through gunicorn,
+binding to `$PORT` so it runs unchanged on any container host. Models are committed, so
+deployment is just "point a host at this repo."
 
 ```bash
-docker build -t autotriage .
-docker run -p 7860:7860 autotriage
+docker build -t autotriage . && docker run -p 7860:7860 autotriage   # local
 ```
 
-Because the models are committed, deployment is just "push the repo to a Docker Space."
-A scheduled GitHub Action (`.github/workflows/keep-alive.yml`) pings `/health` so the
-Space stays awake during grading — set the `SPACE_URL` repo variable to your Space URL.
+**Render (free tier) — recommended.** A `render.yaml` blueprint is included. In the
+Render dashboard: *New + → Blueprint → connect this repo → Apply*. The free web service
+builds the Dockerfile and serves at `https://autotriage-ai.onrender.com` (or similar).
+
+**Hugging Face Space.** The `README.md` front-matter is a Docker-Space config. Note that
+HF now requires a **PRO** subscription to host Docker/Gradio Spaces on free CPU; with PRO
+it deploys by pushing this repo to a Space.
+
+A scheduled GitHub Action (`.github/workflows/keep-alive.yml`) pings `/health` every 30
+min so a free host doesn't sleep during grading — set the `SPACE_URL` repo variable to
+your deployed URL.
 
 - `GET /health` → `{"status":"ok","models_loaded":3,...}`
 - `POST /api/predict` with `{"text": "...", "model": "deep"}` → prediction + explanation
