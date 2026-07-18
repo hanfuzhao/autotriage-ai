@@ -18,7 +18,7 @@ reads that free-text narrative and predicts **which vehicle system** the complai
 about, so a safety team can route thousands of incoming reports to the right engineers
 instead of triaging them by hand.
 
-- **Live demo:** https://<your-hf-username>-autotriage-ai.hf.space  *(set after deploy)*
+- **Live demo:** https://autotriage-ai-unfvnsiy6a-uc.a.run.app  *(Google Cloud Run)*
 - **Task:** single-label text classification over **14 vehicle-component classes**
 - **Data:** public **NHTSA ODI Complaints API** (real owner narratives, public domain)
 
