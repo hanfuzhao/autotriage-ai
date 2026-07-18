@@ -1,9 +1,4 @@
-"""Data pipeline: load raw NHTSA complaints, derive component labels,
-clean the narrative text, and produce stratified train/val/test splits.
-
-All transformations are pure functions so they can be reused by the training
-pipeline, the experiment harness, and unit-style smoke tests.
-"""
+"""Loads raw NHTSA complaints, derives labels, cleans text, and makes train/val/test splits."""
 from __future__ import annotations
 
 import json
@@ -20,14 +15,7 @@ SAMPLE_PATH = BASE_DIR / "data" / "raw" / "sample.csv"
 
 RANDOM_SEED = 42
 
-# ---------------------------------------------------------------------------
-# Label taxonomy
-# ---------------------------------------------------------------------------
-# NHTSA records a comma-separated list of affected components per complaint.
-# We predict the PRIMARY (first-listed) affected system. Raw component strings
-# are normalised into a compact, coherent taxonomy: near-duplicate codes are
-# merged (e.g. ENGINE AND ENGINE COOLING -> ENGINE) and the modern ADAS codes
-# (forward-collision / lane-departure / back-over) are grouped as one class.
+# we predict the first-listed component, and merge near-duplicate codes into one taxonomy
 COMPONENT_MAP: dict[str, str] = {
     "ELECTRICAL SYSTEM": "ELECTRICAL SYSTEM",
     "ENGINE": "ENGINE",
@@ -55,8 +43,6 @@ COMPONENT_MAP: dict[str, str] = {
     "SEATS": "SEATS/SEAT BELTS",
 }
 
-# The final set of classes we model. Anything not mapping here (e.g.
-# "UNKNOWN OR OTHER", latches, tires) is dropped so labels stay meaningful.
 CANONICAL_LABELS: list[str] = [
     "ELECTRICAL SYSTEM",
     "ENGINE",
@@ -74,9 +60,6 @@ CANONICAL_LABELS: list[str] = [
     "SEATS/SEAT BELTS",
 ]
 
-# ---------------------------------------------------------------------------
-# Text cleaning
-# ---------------------------------------------------------------------------
 _VIN_RE = re.compile(r"\b[A-HJ-NPR-Z0-9]{11,17}\b")
 _URL_RE = re.compile(r"http\S+|www\.\S+")
 _EMAIL_RE = re.compile(r"\S+@\S+")
@@ -87,13 +70,7 @@ _MULTISPACE_RE = re.compile(r"\s+")
 
 
 def clean_text(text: str) -> str:
-    """Normalise a raw NHTSA complaint narrative into clean lowercase prose.
-
-    NHTSA narratives arrive in inconsistent casing with agency editorial tokens
-    ("TL*", "*TR"), PII redactions ("XXX", "XXXX"), VINs, phones, and URLs. We
-    strip those artefacts while preserving the descriptive text that carries the
-    component signal.
-    """
+    """Lowercase a complaint narrative and strip out editorial tokens, redactions, VINs, phones, urls."""
     if not isinstance(text, str):
         return ""
     text = text.lower()
@@ -116,9 +93,6 @@ def primary_label(components: str) -> str | None:
     return COMPONENT_MAP.get(first)
 
 
-# ---------------------------------------------------------------------------
-# Dataset assembly
-# ---------------------------------------------------------------------------
 def load_raw(path: Path = RAW_PATH) -> pd.DataFrame:
     """Load the raw JSONL complaint dump into a DataFrame."""
     rows: list[dict] = []
@@ -130,7 +104,7 @@ def load_raw(path: Path = RAW_PATH) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-MAX_PER_CLASS = 3500  # cap the largest classes to bound size and head dominance
+MAX_PER_CLASS = 3500  # cap so the big classes don't dominate
 
 
 def build_dataset(raw: pd.DataFrame, min_words: int = 8, max_per_class: int = MAX_PER_CLASS,
@@ -191,7 +165,7 @@ def load_splits() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 
 
 def save_committed_sample(df: pd.DataFrame, n: int = 400, seed: int = RANDOM_SEED) -> None:
-    """Save a small, class-balanced sample for the repo (full data via API)."""
+    """Save a small class-balanced sample for the repo."""
     per = max(5, n // len(CANONICAL_LABELS))
     parts = [
         grp.sample(min(len(grp), per), random_state=seed)
@@ -207,7 +181,7 @@ def get_class_names() -> list[str]:
 
 
 def build_and_save(raw_path: Path = RAW_PATH) -> dict:
-    """End-to-end: raw -> cleaned dataset -> splits saved to disk."""
+    """Run the whole thing, from raw data to splits saved on disk."""
     raw = load_raw(raw_path)
     df = build_dataset(raw)
     train, val, test = make_splits(df)

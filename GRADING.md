@@ -1,55 +1,54 @@
-# Rubric → where to find it
+# Where each requirement lives
 
-A map from each Module 2 Project requirement to where it lives in this repo.
+A quick map from the Module 2 rubric to the files in this repo.
 
-## Required modeling approaches (all three implemented)
+## The three models
 
-| Requirement | Code | Trained artifact |
+| Requirement | Code | Trained file |
 |---|---|---|
 | Naive baseline | `scripts/model.py::NaiveBaseline` | `models/naive.pkl` |
-| Classical (non-DL) ML | `scripts/model.py::ClassicalModel` (TF-IDF + LogReg) | `models/classical.pkl` |
-| Deep learning model | `scripts/model.py::TextCNNModel` (TextCNN) | `models/deep_textcnn.pt` |
-| **Deployed** model | TextCNN (see `main.py`) | committed, loads locally |
+| Classical, non deep | `scripts/model.py::ClassicalModel`, TF-IDF and LogReg | `models/classical.pkl` |
+| Deep learning | `scripts/model.py::TextCNNModel`, TextCNN | `models/deep_textcnn.pt` |
+| Deployed model | TextCNN, served in `main.py` | committed, loads locally |
 
-Locations are also documented in `README.md` → "The three required models".
+These are also listed in the README under "The three required models".
 
-## Required experimentation
+## Experiments
 
-- **Primary experiment — training-set-size sensitivity (learning curves):**
-  `scripts/experiment.py::training_size_experiment`; results in
-  `data/outputs/metrics.json → experiments.training_size`; plot
-  `data/outputs/plots/learning_curve.png`; written up in `TECHNICAL_REPORT.md §7`.
-- Supporting analyses: character-noise **robustness**
-  (`robustness_experiment`), **confidence-gated abstention**
-  (`confidence_gating`), and **head/tail** per-class analysis (`head_tail_analysis`).
+The main experiment is training-set-size sensitivity, the learning curves. It is in
+`scripts/experiment.py::training_size_experiment`, the numbers are in
+`data/outputs/metrics.json` under `experiments.training_size`, the figure is
+`data/outputs/plots/learning_curve.png`, and the write-up is section 7 of the report.
 
-## Interactive application
+Three supporting studies sit alongside it: character-noise robustness
+(`robustness_experiment`), confidence-gated abstention (`confidence_gating`), and a
+head vs tail per-class breakdown (`head_tail_analysis`).
 
-- `main.py` (Flask) — inference only, three models loaded at startup.
-- UI: `templates/index.html`, `static/css/style.css`, `static/js/app.js`.
-- Features: prediction + confidence, top-3, **word-level explanation**, safety-tier
-  **triage banner**, live **three-model comparison**, curated examples.
-- Endpoints: `GET /health`, `GET /api/examples`, `POST /api/predict`.
-- Deploy: `Dockerfile` (CPU torch) → Hugging Face Space; `README.md` front-matter is
-  Space config; `.github/workflows/keep-alive.yml` keeps it awake.
+## The app
 
-## Written report (all sections)
+`main.py` is a Flask app that runs inference only and loads all three models at startup.
+The interface is `templates/index.html` with `static/css/style.css` and
+`static/js/app.js`. It shows a prediction with confidence, the top 3, a word-level
+explanation, a safety-tier triage banner, a live three-model comparison, and a set of
+example complaints. Endpoints are `GET /health`, `GET /api/examples`, and
+`POST /api/predict`. It is deployed on Google Cloud Run from the `Dockerfile`, and a
+GitHub Action in `.github/workflows/keep-alive.yml` keeps it awake.
 
-`TECHNICAL_REPORT.md`: Problem Statement · Data Sources · Related Work · Evaluation
-Strategy & Metrics · Modeling Approach (pipeline + rationale, hyperparameter tuning,
-models evaluated) · Results (quantitative comparison, confusion matrices) · Error
-Analysis (5 mispredictions + root causes + mitigations) · Experiment Write-Up (plan,
-results, interpretation, recommendations) · Conclusions · Future Work · Commercial
-Viability · Ethics.
+## The report
 
-## Code quality / git
+`TECHNICAL_REPORT.md` covers all of the required sections: problem statement, data
+sources, related work, evaluation strategy and metrics, modeling approach with the
+pipeline rationale and hyperparameter tuning, results with tables and confusion matrices,
+an error analysis of five mispredictions with causes and fixes, the experiment write-up,
+conclusions, future work, commercial viability, and ethics.
 
-- All logic is in functions/classes; no loose top-level execution (guarded by
-  `if __name__ == "__main__"`).
-- External references attributed in file headers (NHTSA API; Kim 2014 TextCNN).
-- Notebooks only under `notebooks/` (none required; exploration space).
-- Git: feature branches → reviewed PRs into `main` (see the PR template in
-  `.github/pull_request_template.md` and the repository's Pull Requests tab).
+## Code quality and git
+
+All logic sits in functions and classes, with nothing running at the top level outside an
+`if __name__ == "__main__"` guard. Data source and paper citations are noted in the file
+headers. Notebooks would go under `notebooks/`. The repo was built on feature branches
+merged into `main` through pull requests, so the branch structure and PR are visible on
+GitHub.
 
 ## Reproduce everything
 

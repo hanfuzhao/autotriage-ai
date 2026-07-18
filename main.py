@@ -1,12 +1,9 @@
-"""AutoTriage AI - interactive web app for NHTSA complaint component
-classification. Loads the three trained models and serves inference only
-(no training) behind a small Flask JSON API + single-page UI.
+"""Flask web app for the NHTSA complaint classifier.
 
-Endpoints:
-    GET  /          -> the single-page app
-    GET  /health    -> liveness probe (used by the keep-alive workflow)
-    GET  /api/examples -> curated demo complaints
-    POST /api/predict  -> {text, model} -> prediction, top-k, explanation, triage
+It loads the three trained models once and only serves inference. Routes are
+/ for the page, /health for a liveness check, /api/examples for demo complaints,
+and /api/predict which takes {text, model} and returns the prediction, top-k,
+explanation, and triage tier.
 """
 from __future__ import annotations
 
@@ -26,14 +23,11 @@ MODELS_DIR = BASE_DIR / "models"
 
 app = Flask(__name__)
 
-# ---------------------------------------------------------------------------
-# Model loading (once, at startup)
-# ---------------------------------------------------------------------------
 MODELS: dict[str, object] = {}
 LABELS: list[str] = []
 DEPLOYED = "deep"
 
-# Safety-criticality tier per component, used to colour the triage banner.
+# safety tier per component, drives the colour of the triage banner
 CRITICALITY = {
     "SERVICE BRAKES": "critical", "AIR BAGS": "critical", "STEERING": "critical",
     "SEATS/SEAT BELTS": "critical", "FUEL/PROPULSION SYSTEM": "critical",
@@ -61,7 +55,7 @@ EXAMPLES = [
 
 
 def load_models() -> None:
-    """Load whichever trained models are present; degrade gracefully."""
+    """Load whatever trained models are on disk."""
     global LABELS, DEPLOYED
     meta_path = MODELS_DIR / "labels.json"
     if meta_path.exists():
@@ -148,7 +142,6 @@ def predict():
 
     main_result = _predict_with(MODELS[which], which, text)
     main_result["triage"] = _triage(main_result["prediction"])
-    # side-by-side snapshot of all three models
     compare = {
         name: {
             "prediction": (r := _predict_with(model, name, text))["prediction"],

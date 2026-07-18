@@ -1,14 +1,11 @@
-"""End-to-end training pipeline for the NHTSA complaint component classifier.
+"""Training pipeline. Downloads or reuses the data, builds the splits, trains all
+three models, evaluates on the test set, runs the experiments, and writes
+metrics.json and the plots. Trained models go in models/ for the app to serve.
 
-Runs: (optionally) download -> build splits -> EDA -> train all three models ->
-evaluate on the held-out test set -> run experiments -> write metrics.json and
-all plots. Trained models land in ``models/`` for the web app to serve.
-
-Usage:
-    python setup.py                 # full pipeline on downloaded data
-    python setup.py --fast          # tiny smoke test (seconds, verifies plumbing)
+    python setup.py                 # full run
+    python setup.py --fast          # tiny run to check the plumbing
     python setup.py --skip-download # reuse an existing data/raw dump
-    python setup.py --no-deep       # skip the neural model (CI / low-resource)
+    python setup.py --no-deep       # skip the neural model
 """
 from __future__ import annotations
 
@@ -72,7 +69,6 @@ def train_and_evaluate(fast: bool, no_deep: bool, skip_download: bool) -> dict:
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # --- data ----------------------------------------------------------------
     _ensure_raw(skip_download)
     stats = data_mod.build_and_save()
     train, val, test = data_mod.load_splits()
@@ -84,7 +80,6 @@ def train_and_evaluate(fast: bool, no_deep: bool, skip_download: bool) -> dict:
 
     eda_stats = run_eda(pd.concat([train, val, test], ignore_index=True))
 
-    # --- train the three models ---------------------------------------------
     print("\n[1/3] Naive baseline...")
     naive = NaiveBaseline().fit(train["text"], train["label"])
     naive.save(MODELS_DIR / "naive.pkl")
@@ -115,12 +110,10 @@ def train_and_evaluate(fast: bool, no_deep: bool, skip_download: bool) -> dict:
 
     ev.plot_model_comparison(results, PLOTS_DIR / "model_comparison.png")
 
-    # persist label metadata for the app
     (MODELS_DIR / "labels.json").write_text(json.dumps({
         "classes": labels, "deployed_model": "deep" if deep is not None else "classical",
     }, indent=2))
 
-    # --- experiments ---------------------------------------------------------
     experiments: dict = {}
     errors: dict = {}
     deployed = deep if deep is not None else classical
@@ -153,7 +146,6 @@ def train_and_evaluate(fast: bool, no_deep: bool, skip_download: bool) -> dict:
                 results["deep"]["per_class"], stats["class_counts"])
         errors["deployed"] = exp.collect_errors(deployed, test, n=12)
 
-    # --- write metrics.json --------------------------------------------------
     metrics = {
         "meta": {
             "generated_at": datetime.now(timezone.utc).isoformat(),

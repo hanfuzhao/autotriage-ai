@@ -1,19 +1,4 @@
-"""Experiment harness for the NHTSA component classifier.
-
-Four probes, all reusable and each runnable in isolation:
-
-  1. training_size_experiment  - learning curves: how much labelled data does
-       each model need? (the "cold-start" question for a newly tracked model)
-  2. robustness_experiment     - degradation under character-level noise, since
-       real owner complaints are full of typos and inconsistent casing.
-  3. confidence_gating         - accuracy vs. coverage when the deployed model is
-       allowed to abstain below a confidence threshold (deployment triage).
-  4. head_tail_analysis        - per-class F1 split into frequent (head) and
-       rare (tail) safety components.
-
-The primary, written-up experiment is #1 (training-set-size sensitivity); the
-others are supporting analyses that inform deployment.
-"""
+"""Experiment harness for the NHTSA component classifier."""
 from __future__ import annotations
 
 import random
@@ -26,9 +11,7 @@ from scripts.model import ClassicalModel, NaiveBaseline, TextCNNModel
 _ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 
 
-# ---------------------------------------------------------------------------
-# 1. Training-set-size sensitivity (primary experiment)
-# ---------------------------------------------------------------------------
+# the main experiment we write up
 def training_size_experiment(
     train, val, test, labels, fractions=(0.05, 0.1, 0.25, 0.5, 1.0),
     include_deep: bool = True, deep_epochs: int = 12, seed: int = 42,
@@ -64,9 +47,6 @@ def training_size_experiment(
     return {"sizes": sizes, "fractions": list(fractions), "curves": curves}
 
 
-# ---------------------------------------------------------------------------
-# 2. Robustness to character noise
-# ---------------------------------------------------------------------------
 def add_char_noise(text: str, rate: float, rng: random.Random) -> str:
     """Corrupt a fraction of characters with typo-like edits."""
     if rate <= 0:
@@ -76,11 +56,11 @@ def add_char_noise(text: str, rate: float, rng: random.Random) -> str:
         if ch != " " and rng.random() < rate:
             op = rng.random()
             if op < 0.34:
-                continue  # deletion
+                continue
             elif op < 0.67:
-                out.append(rng.choice(_ALPHABET))  # substitution
+                out.append(rng.choice(_ALPHABET))
             else:
-                out.append(ch); out.append(rng.choice(_ALPHABET))  # insertion
+                out.append(ch); out.append(rng.choice(_ALPHABET))
         else:
             out.append(ch)
     return "".join(out)
@@ -99,9 +79,6 @@ def robustness_experiment(models: dict, test, labels, levels=(0.0, 0.05, 0.1, 0.
     return {"levels": list(levels), "curves": curves}
 
 
-# ---------------------------------------------------------------------------
-# 3. Confidence-gated abstention
-# ---------------------------------------------------------------------------
 def confidence_gating(model, test, labels, thresholds=(0.0, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)) -> list[dict]:
     """Accuracy and coverage when the model answers only above each threshold."""
     proba = model.predict_proba(test["text"])
@@ -118,9 +95,6 @@ def confidence_gating(model, test, labels, thresholds=(0.0, 0.3, 0.4, 0.5, 0.6, 
     return rows
 
 
-# ---------------------------------------------------------------------------
-# 4. Head vs tail per-class analysis
-# ---------------------------------------------------------------------------
 def head_tail_analysis(per_class: dict, class_counts: dict, head_k: int = 5) -> dict:
     """Split classes into head (most frequent) and tail; average their F1."""
     ordered = sorted(class_counts, key=lambda c: class_counts[c], reverse=True)
@@ -132,9 +106,6 @@ def head_tail_analysis(per_class: dict, class_counts: dict, head_k: int = 5) -> 
     }
 
 
-# ---------------------------------------------------------------------------
-# Error analysis: surface confident mistakes for the write-up
-# ---------------------------------------------------------------------------
 def collect_errors(model, test, n: int = 12) -> list[dict]:
     """Return the most confident misclassifications for manual error analysis."""
     proba = model.predict_proba(test["text"])

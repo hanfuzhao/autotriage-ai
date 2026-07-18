@@ -1,0 +1,11 @@
+# Keep the Cloud Build upload small: exclude data the running app never needs.
+.git/
+__pycache__/
+*.pyc
+.DS_Store
+data/raw/glove.6B.200d.txt
+data/raw/glove.6B.300d.txt
+data/raw/glove.6B.zip
+data/raw/nhtsa_complaints.jsonl
+data/processed/
+notebooks/
