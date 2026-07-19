@@ -6,21 +6,22 @@ Module 2 Project. Natural Language Processing. Technical Report.
 
 ## Abstract
 
-Every year, U.S. vehicle owners file hundreds of thousands of free-text safety
-complaints with the National Highway Traffic Safety Administration (NHTSA). Before
-any analysis can happen, each narrative has to be routed to the right vehicle system:
-brakes, air bags, powertrain, and so on. Right now that tagging is mostly done by hand.
-This project builds and evaluates an NLP system that reads a complaint
-narrative and predicts the affected component among **14 classes**. It is trained on
-37,342 real NHTSA complaints spanning 14 makes. We implement the three required
-modeling tiers, a majority-class naive baseline, a classical TF-IDF +
-Logistic Regression model, and a TextCNN deep model with GloVe transfer learning, then compare
-them under a metric regime chosen for a long-tailed label distribution, macro-F1.
-Beyond raw accuracy we contribute an interpretable, deployment-oriented system. The
-app names the words driving each prediction, attaches a safety-tier routing action,
-and abstains below a confidence threshold. A focused experiment on training-set-size
-sensitivity quantifies the cold-start regime a safety team faces when a newly tracked
-model launches. Both real models reach about 0.77 macro-F1 against a 0.01 naive floor. GloVe
+Most drivers cannot tell a real safety defect from a harmless quirk. A noise, a warning
+light, a moment where the car does not behave, and the owner is left guessing whether it
+is dangerous or nothing. This project turns that plain-language worry into a structured
+answer. It reads an owner's description and predicts which of **14 vehicle systems** it
+concerns, then attaches how safety-critical that system is and whether it is worth
+reporting to NHTSA. The same reports, in aggregate, are what trigger recalls, so a tool
+that helps an owner recognise and file a real problem also feeds the safety system that
+protects everyone else. The model is trained on 37,342 real NHTSA complaints spanning 14
+makes. We implement the three required modeling tiers, a majority-class naive baseline, a
+classical TF-IDF + Logistic Regression model, and a TextCNN deep model with GloVe transfer
+learning, then compare them under a metric regime chosen for a long-tailed label
+distribution, macro-F1. Beyond raw accuracy we contribute an interpretable, owner-facing
+system. The app names the words driving each prediction, attaches a safety tier and a
+plain next step, and abstains below a confidence threshold rather than falsely reassuring
+someone. A focused experiment on training-set-size sensitivity quantifies the cold-start
+regime. Both real models reach about 0.77 macro-F1 against a 0.01 naive floor. GloVe
 transfer learning is what lifts the neural model from clearly behind the classical
 baseline up to parity, and it closes the cold-start gap entirely.
 
@@ -28,32 +29,30 @@ baseline up to parity, and it closes the cold-start gap entirely.
 
 ## 1. Problem Statement
 
-NHTSA's Office of Defects Investigation (ODI) is the early-warning system for U.S.
-auto safety. Owner complaints are the raw signal that, in aggregate, triggers
-investigations and recalls. Each complaint is a short, unstructured narrative written
-by a lay owner, for example "the car surged forward on its own in a parking lot". To be useful,
-every narrative has to be tied to the vehicle **component/system** it concerns.
-That component tag drives everything downstream: trend detection per subsystem,
-routing to the right engineering reviewers, and clustering complaints into candidate
-defect patterns.
+When something goes wrong with a car, the owner is the first to notice and the least
+equipped to judge it. Was that a loose heat shield or a failing brake line? A quirk of the
+infotainment or an airbag that will not deploy? Most people cannot tell, so they either
+worry over nothing or, worse, keep driving through a real defect. Meanwhile NHTSA's Office
+of Defects Investigation runs on exactly these owner reports. In aggregate they are what
+trigger investigations and recalls, but only if owners actually recognise a problem, file
+it, and file it against the right system. That is the gap this project targets: help an
+owner turn a vague, plain-language worry into a categorised, severity-rated answer they can
+act on, and in doing so make the report they file more useful to everyone downstream.
 
-Manual tagging does not scale, it is inconsistent between annotators, and it is slow exactly
-when speed matters. A cluster of brake complaints is a safety emergency. So we
-frame the task as **single-label multi-class text classification**:
+The core task is **single-label multi-class text classification**:
 
-> Given a complaint narrative, predict the primary affected component among 14 classes.
+> Given an owner's description, predict the primary affected component among 14 classes.
 
-The same problem shows up anywhere a platform ingests owner feedback about
-vehicles, whether that is an auto marketplace, a manufacturer's quality inbox, or a fleet operator's
-maintenance log. A model that reads the narrative and routes it correctly turns a
-manual backlog into a real-time triage stream.
+On top of that prediction the app layers the two things an owner actually needs, a sense of
+how serious the system is and a plain next step, plus the evidence behind the call so the
+person can decide whether to trust it.
 
 **Why this is hard.** Owners are not engineers. They describe symptoms, not systems.
 "It makes a grinding noise when I stop" means brakes. Several components are semantically
 adjacent and easily confused. Engine, powertrain, and fuel/propulsion all
 involve "power" and "stalling", and electrical is a catch-all that overlaps with almost
 everything. On top of that the class distribution is long-tailed, so a model can look accurate
-while failing on rarer, safety-critical systems.
+while quietly failing on the rarer, safety-critical systems that matter most to get right.
 
 ---
 
@@ -119,15 +118,18 @@ competitive on short-to-medium documents and cheap enough to deploy on CPU. Larg
 pretrained transformers such as BERT and DistilBERT typically define the accuracy ceiling,
 but they cost far more in parameters and latency.
 
-**What is new here.** Relative to prior complaint-mining work, this project does three
-things. First, it frames
-the task as a clean supervised 14-class routing problem on a compact, de-duplicated
-taxonomy. Second, it centres the evaluation on the long tail of rarer-but-critical
-components rather than headline accuracy. Third, it delivers an interpretable,
-deployment-ready triage tool with word-level explanations, safety-tier routing, and
-confidence-gated abstention, instead of a black-box label. Our aim is greater insight
-and usability rather than chasing the transformer SOTA ceiling, and we discuss that
-trade-off explicitly in section 9.
+**What is new here.** Prior complaint-mining work almost always serves the regulator or
+the manufacturer, mining the archive after the fact to find defects. We point the same
+capability the other way, at the owner who notices the problem first, and package it as an
+interpretable safety check rather than a back-office classifier. Concretely, three things.
+First, we frame the task as a clean supervised 14-class problem on a compact, de-duplicated
+taxonomy. Second, we centre the evaluation on the long tail of rarer-but-critical systems
+like airbags and brakes rather than headline accuracy, because for an owner-facing tool a
+confident wrong all-clear on a critical system is the worst possible error. Third, we
+deliver a live, interpretable product with word-level explanations, a safety tier with a
+plain next step, and confidence-gated abstention, instead of a black-box label. Our aim is
+greater insight and usability rather than chasing the transformer SOTA ceiling, and we
+discuss that trade-off explicitly in section 9.
 
 ---
 
@@ -402,49 +404,52 @@ classification with calibrated per-label thresholds, rather than more model capa
 
 ## 9. Commercial Viability
 
-Is this suitable for real-world use? Partly, with the right framing. The system
-is a genuine fit for a human-in-the-loop triage product, not an autonomous
-decision-maker. Concretely:
+Is this suitable for real-world use? As a consumer safety-awareness aid, yes, with clear
+framing. As anything that replaces a mechanic or an official recall, no. Concretely:
 
-- **Where it fits.** Any organisation ingesting free-text vehicle feedback faces
-  the same manual-tagging bottleneck, whether that is a
-  manufacturer's quality or warranty inbox, an auto marketplace like the sponsor's
-  platform, a fleet operator's maintenance logs, or an insurer's claims text. A ~0.77 macro-F1 router that also abstains on
-  low-confidence cases can auto-tag the confident majority and escalate the rest.
-  That cuts triage cost materially while keeping a human on the hard calls.
-- **Why the design is deployable.** The model is a ~15 MB artefact running CPU
-  inference in milliseconds with no GPU, so it is cheap to host and scale. It is also interpretable,
-  with word-level evidence and a safety tier, which is essential for adoption by safety
-  reviewers who have to justify their decisions.
-- **Why not fully autonomous.** Safety is high-stakes and the tail classes are the ones
-  that matter most. At ~0.77 macro-F1 the model is a productivity multiplier, not a
-  replacement for expert judgement. The confidence-gating result (section 7) is the mechanism
-  that makes this safe: answer automatically only where the model is reliable.
-- **The model-choice trade-off.** Our evaluation shows a strong classical baseline is
-  on par with the neural model, so a lean production system could ship the classical
-  model alone. We deploy the GloVe TextCNN to demonstrate the deep approach and because
-  it generalises semantically, but a cost-sensitive buyer could run the classical model
-  at a fraction of the footprint. That is an honest finding that de-risks the product.
+- **Who it helps and how it could make money.** The direct user is a worried owner who
+  wants a fast, plain read on a car problem. That maps to a free consumer tool that drives
+  trust, with revenue from adjacent services: a "file this with NHTSA" flow, a hand-off to
+  a repair-booking or mobile-mechanic marketplace, or a white-label version for an auto
+  marketplace, an insurer's claims intake, or a manufacturer's owner app. The same engine
+  also has a straightforward internal use, auto-tagging an incoming complaint stream by
+  system, which is the earlier business framing.
+- **Why the design is deployable.** The model is a ~15 MB artefact running CPU inference
+  in milliseconds with no GPU, so it is cheap to host and scale to many owners. It is also
+  interpretable, with word-level evidence and a safety tier, which is what earns a nervous
+  owner's trust.
+- **Why not autonomous or authoritative.** Safety is high-stakes and the tail classes are
+  the ones that matter most. At ~0.77 macro-F1 the tool is a first read, not a diagnosis.
+  The confidence-gating result (section 7) is the mechanism that keeps it honest: when the
+  model is unsure it should say so rather than hand out a false all-clear.
+- **The model-choice trade-off.** Our evaluation shows a strong classical baseline is on
+  par with the neural model, so a lean version could ship the classical model alone. We
+  deploy the GloVe TextCNN to demonstrate the deep approach and because it generalises
+  semantically, but a cost-sensitive build could run the classical model at a fraction of
+  the footprint. That is an honest finding that de-risks the product.
 
-**Verdict:** commercially viable as a triage-assist feature, not as an unsupervised
-safety authority.
+**Verdict:** viable as a consumer safety-awareness aid and as an internal tagging engine,
+not as a diagnosis or an official safety authority.
 
 ## 10. Ethics Statement
 
+- **Safety guidance to non-experts.** The most serious risk is an owner over-trusting the
+  tool. A confident wrong all-clear on a real defect, or needless alarm on a harmless one,
+  both do harm. We mitigate this three ways: the tool only ever gives a soft next step, not
+  a diagnosis; it abstains when unsure rather than reassuring; and every screen carries a
+  clear disclaimer that it is a student research demo, not an official NHTSA tool, and no
+  substitute for a mechanic.
 - **Data & privacy.** NHTSA complaints are public-domain records, but narratives can
   contain personal details. Our pipeline strips VINs, phone numbers, emails, and
   redaction artefacts before modelling, and we commit only a small sample plus a
   reproducible download script rather than re-publishing the corpus.
-- **Safety-critical misuse.** A wrong or over-trusted prediction could misroute a
-  genuine safety defect. The system is explicitly positioned as a triage aid with
-  human review and confidence-gated abstention. It must not be used to dismiss
-  complaints or to make recall decisions autonomously.
 - **Bias & representativeness.** The corpus skews toward high-volume U.S. makes and models
   and toward English-language, self-selected complainants. Performance may be worse for
-  under-represented vehicles, populations, or non-English text. Per-class head and tail
-  reporting is our first guard against silently failing rare-but-critical systems.
-- **Transparency.** Every prediction ships with the evidence behind it and a calibrated
-  confidence, so reviewers can audit and overrule the model rather than defer to it.
+  under-represented vehicles, populations, or non-English text, which for a safety aid
+  means uneven protection. Per-class head and tail reporting is our first guard against
+  silently failing rare-but-critical systems.
+- **Transparency.** Every prediction ships with the evidence behind it and a confidence
+  score, so an owner can see the reasoning and decide for themselves rather than defer.
 
 ## 11. Conclusions & Future Work
 
@@ -456,8 +461,9 @@ Accuracy alone would have hidden the naive baseline's uselessness and the tail-c
 behaviour. Third, transfer learning through GloVe is what makes the neural model competitive.
 It closes a two-point gap and helps most when labels are scarce. Fourth, a simple,
 interpretable classical model is a remarkably strong, cheap baseline that a real product
-could ship. The deployed app turns these models into a usable triage tool with
-word-level explanations, safety-tier routing, and confidence-gated abstention.
+could ship. The deployed app turns these models into a usable safety check for owners,
+with word-level explanations, a safety tier and a plain next step, and confidence-gated
+abstention so it can say "not sure" instead of falsely reassuring someone.
 
 **Future work, given another semester.**
 

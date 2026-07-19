@@ -8,14 +8,17 @@ app_port: 7860
 pinned: false
 ---
 
-# AutoTriage AI: Vehicle Complaint Component Classifier
+# AutoTriage AI: Is Your Car Problem a Safety Issue?
 
-Module 2 Project, Natural Language Processing. Built on real NHTSA complaint narratives.
+Module 2 Project, Natural Language Processing. Built on real NHTSA owner complaints.
 
-Car owners describe problems in their own words. "The brakes went to the floor." "It
-brakes by itself on the highway." "The airbag light stays on." AutoTriage AI reads that
-free text and predicts which vehicle system the complaint is about, so a safety team can
-send thousands of incoming reports to the right engineers instead of sorting them by hand.
+Most drivers can't tell a real safety defect from a harmless quirk. You hear a noise, a
+warning light comes on, the car does something that doesn't feel right, and you are left
+guessing whether it is dangerous or nothing. AutoTriage AI reads your plain-language
+description and tells you which of 14 car systems it points to, how serious that system
+tends to be, and whether it is worth reporting to NHTSA. It learned from the same owner
+complaints that, added up, trigger recalls, so a report you file could help catch the next
+defect early.
 
 - Live demo: https://autotriage-ai-unfvnsiy6a-uc.a.run.app (Google Cloud Run)
 - Task: single-label text classification over 14 vehicle-component classes
@@ -23,10 +26,10 @@ send thousands of incoming reports to the right engineers instead of sorting the
 
 ## What it does
 
-You paste a complaint. The app gives back the predicted component, a confidence score,
-the top 3 candidate systems, a word-level explanation showing which words drove the call,
-a triage banner with a safety tier and a routing suggestion, and a side-by-side view of
-how all three models score the same text.
+You describe what your car did. The app returns the most likely system, a confidence
+score, the other systems it could be, the exact words that drove the call so you can
+sanity-check it, a safety tier with a plain next step, and a side-by-side view of how all
+three models read the same text.
 
 ## The three required models
 
@@ -126,17 +129,21 @@ static/                   css and js
 ## Originality and approach
 
 This is new work built for this course. Earlier research has classified NHTSA complaints,
-mostly to find defects or predict recalls automatically. What this project adds:
+mostly to help regulators find defects or predict recalls. This project points the same
+capability at the person who actually notices the problem first, the owner. What it adds:
 
-1. Interpretable, self-contained triage. Instead of a black box, the app names the exact
+1. An owner-facing, interpretable answer. Instead of a black box, the app names the exact
    words behind each prediction, using the linear coefficients for the classical model and
-   leave-one-token-out saliency for the TextCNN, and it attaches a safety tier and a
-   routing action.
+   leave-one-token-out saliency for the TextCNN, and it attaches a safety tier and a plain
+   next step. An owner needs to trust the call, and being able to see why is what makes it
+   trustworthy.
 2. A careful three-model comparison on a compact 14-class taxonomy, with the evaluation
-   aimed at the long tail of rarer but critical systems, where accuracy hides failures.
+   aimed at the long tail of rarer but critical systems like airbags and brakes, where
+   accuracy hides failures and where a false all-clear would be the most harmful.
 3. A deployment-minded set of experiments: a training-set-size study for the cold-start
    case, character-noise robustness because real complaints are messy, and
-   confidence-gated abstention for human-in-the-loop routing.
+   confidence-gated abstention so the tool can say "not sure" instead of falsely
+   reassuring someone.
 
 I wrote the code myself and used only standard libraries: scikit-learn, PyTorch, Flask.
 The TextCNN follows Kim 2014. NHTSA data is U.S. public domain.
