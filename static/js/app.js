@@ -81,7 +81,7 @@
   function setLoading(on) {
     el.analyze.disabled = on;
     el.spinner.hidden = !on;
-    el.btnLabel.textContent = on ? "Analyzing" : "Analyze";
+    el.btnLabel.textContent = on ? "Checking" : "Check it";
   }
 
   function flashError(msg) {

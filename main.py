@@ -82,9 +82,9 @@ def load_models() -> None:
 def _triage(label: str) -> dict:
     tier = CRITICALITY.get(label, "moderate")
     routing = {
-        "critical": "Route to the safety-critical review queue for immediate triage.",
-        "high": "Assign to the responsible powertrain/electronics engineering team.",
-        "moderate": "Queue for standard component-team review.",
+        "critical": "This is a safety-critical system. If it is happening now, stop driving when it is safe and get it checked. A complaint like this is worth filing with NHTSA.",
+        "high": "This can change how the car drives. Have it inspected soon, and consider filing a report with NHTSA.",
+        "moderate": "Probably not an immediate danger. Keep notes and mention it at your next service visit.",
     }[tier]
     return {"tier": tier, "routing": routing}
 

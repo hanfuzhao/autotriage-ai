@@ -69,7 +69,7 @@ def title_slide(prs):
     accent.fill.solid(); accent.fill.fore_color.rgb = ACCENT; accent.line.fill.background()
     tf = box(s, Inches(0.9), Inches(2.4), Inches(11.5), Inches(3.0))
     line(tf, "AutoTriage AI", 54, TEXT, bold=True, first=True, space=6)
-    line(tf, "Reading vehicle safety complaints and routing them to the right system", 24, ACCENT, space=24)
+    line(tf, "Is your car problem a safety issue?", 26, ACCENT, space=24)
     line(tf, "Module 2 Project, Natural Language Processing", 18, MUTED, space=4)
     line(tf, "Live demo: autotriage-ai-unfvnsiy6a-uc.a.run.app", 16, MUTED)
     return s
@@ -127,41 +127,41 @@ def build():
     prs = new_deck()
     title_slide(prs)
     content_slide(prs, "The problem", [
-        "Drivers file hundreds of thousands of safety complaints with NHTSA every year",
-        "Every complaint has to be tagged with the vehicle system it is about",
-        "That tagging is mostly manual today, so it is slow and inconsistent",
-        "These complaints are the early warning for recalls, so speed matters",
+        "Your car does something odd, a noise, a warning light, a scary moment",
+        "Most owners cannot tell a real safety defect from a harmless quirk",
+        "So they worry over nothing, or keep driving through a real problem",
+        "Recalls start from owner complaints, but only if people recognise and report them",
     ])
-    content_slide(prs, "What we built", [
-        "Reads the owner's own words and predicts one of 14 vehicle systems in under a second",
-        "Flags how safety-critical the system is and suggests where to route the report",
-        "Trained on about 37,000 real NHTSA complaints across 14 car makes",
-        "Not a black box, it shows the exact words behind every decision",
+    content_slide(prs, "What I built", [
+        "Describe the problem in plain words, the way you would tell a friend",
+        "It tells you which of 14 car systems it is, and how serious that system is",
+        "And whether it is worth reporting to NHTSA",
+        "It shows the exact words behind the call, so you can decide to trust it",
     ])
     content_slide(prs, "Live demo", [
         "autotriage-ai-unfvnsiy6a-uc.a.run.app",
-        "Prediction, confidence, and the top 3 candidate systems",
-        "Highlighted words that drove the call, plus a safety triage banner",
+        "Most likely system, confidence, and the other systems it could be",
+        "The words that drove the call, plus a safety tier and a plain next step",
         "Flip between the naive, classical, and deep models on the same text",
     ], sub="Let the screen do the talking")
-    content_slide(prs, "Three models, one honest comparison", [
+    content_slide(prs, "Three models, judged honestly", [
         "Naive baseline, majority class, the accuracy floor",
         "Classical, TF-IDF with class-weighted Logistic Regression",
         "Deep, TextCNN with GloVe transfer learning, the deployed model",
         "The data is long-tailed, so we judge on macro-F1, not accuracy",
     ])
     results_slide(prs)
-    content_slide(prs, "What we learned", [
+    content_slide(prs, "What I learned", [
         "GloVe transfer learning erased the deep model's cold-start gap",
         "At about 1,300 examples it went from 11 points behind to a tie",
-        "The classical model stays a bit more robust to typos and noise",
+        "For a safety tool, honesty matters: it says 'not sure' instead of a false all-clear",
         "Answering only the most confident 60 percent reaches 91 percent accuracy",
     ])
     content_slide(prs, "Why it matters, and the ask", [
-        "Manual triage becomes real-time triage",
-        "The same engine fits a marketplace, a manufacturer, or a fleet",
-        "Live on the cloud, a small model, no GPU, and transparent",
-        "The ask: a partner complaint stream and a pilot with one quality team",
+        "Turn a helpless worry into a clear read and a next step",
+        "Every good report an owner files also feeds the recall system",
+        "Live on the cloud, a small model, no GPU, and it explains itself",
+        "The ask: put it in a car marketplace or claims flow and test it with real owners",
     ])
     prs.save(OUT)
     print(f"wrote {OUT} with {len(prs.slides.__iter__.__self__._sldIdLst)} slides")
