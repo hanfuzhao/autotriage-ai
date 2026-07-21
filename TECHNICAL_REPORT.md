@@ -172,7 +172,7 @@ use, with the reasoning visible.
 
 What this project does not claim is a new architecture or state-of-the-art accuracy. The
 contribution is the reframing, the evaluation discipline around the tail, and the working
-interpretable system. Section 9 discusses that trade-off honestly, including the finding
+interpretable system. Section 11 discusses that trade-off honestly, including the finding
 that a simple classical model matches our neural one.
 
 ---
@@ -197,7 +197,7 @@ follows directly from the long-tailed label distribution.
   confused turns out to matter (see Error Analysis).
 - **Deployment metrics.** Because a triage system can defer uncertain cases to a
   human, we also measure accuracy against coverage under confidence-gated
-  abstention (section 7.3).
+  abstention (section 8.3).
 
 All models are selected and tuned on the validation split, then reported once on the
 untouched test split. The deep model's early stopping is driven by validation
@@ -207,7 +207,7 @@ macro-F1, consistent with the headline metric.
 
 ## 5. Modeling Approach
 
-### 5.1 Data processing pipeline (with rationale)
+### 5.1 Data processing pipeline (with rationale for each step)
 
 Every step in `scripts/data.py` is there for a reason:
 
@@ -234,39 +234,7 @@ The classical and deep models share this cleaned text but diverge in
 featurisation. The linear model uses TF-IDF n-gram vectors. The CNN uses a learned integer
 vocabulary and embeddings.
 
-### 5.2 Models evaluated (and why each)
-
-**(a) Naive baseline, majority class** (`NaiveBaseline`). Predicts the single most
-frequent class for every input and exposes the training class priors as its
-probabilities. This establishes the accuracy floor and shows exactly
-why accuracy is misleading here. It is the reference every real model has to beat on
-macro-F1.
-
-**(b) Classical ML, TF-IDF + Logistic Regression** (`ClassicalModel`). Word 1-2 gram
-TF-IDF with sublinear tf, `min_df=3`, and up to 40k features feeds a multinomial logistic
-regression with balanced class weights. This is a strong, fast, and
-**interpretable** baseline. The linear coefficients name the exact tokens that push a
-complaint toward each component, which powers the app's explanations and lets us audit
-what the model learned. Class weighting counteracts the residual imbalance.
-
-**(c) Deep learning, TextCNN with GloVe transfer learning** (`TextCNNModel`,
-deployed). An embedding layer initialised with pretrained 200-d GloVe vectors
-(Pennington et al., 2014, covering ~85% of our vocabulary) and fine-tuned during
-training feeds four parallel 1-D convolutions of widths 2/3/4/5 with 160 filters each,
-acting as learned n-gram detectors. Max-over-time pooling keeps the strongest
-activation per filter, then dropout of 0.4, then a linear classifier. It is trained with Adam and
-class-weighted cross-entropy, early-stopped on validation macro-F1.
-The CNN learns phrase-level, order-sensitive cues like "lost power" and "goes to
-the floor" that bag-of-words misses. The GloVe initialisation is a lightweight
-form of transfer learning. It injects general-language knowledge the model cannot
-learn from ~26k complaints alone, and that is what lifts it from clearly behind the
-classical baseline up to parity with it (section 6). The pretrained vectors are needed only at
-training time. The learned embedding matrix is baked into the ~15 MB `.pt`, so the
-deployed model stays tiny, CPU-fast, and fully self-contained. We use GloVe rather than
-fine-tuning a large transformer to keep the system lightweight and deployable, and section 9
-discusses that trade-off.
-
-### 5.3 Hyperparameter tuning strategy
+### 5.2 Hyperparameter tuning strategy
 
 We tuned on the validation split, not the test split. For the classical model the
 key knobs are the TF-IDF vocabulary via `ngram_range`, `min_df`, and `max_features`, and the
@@ -275,14 +243,14 @@ moderately low `C` for generalisation, with `class_weight="balanced"` fixed by t
 imbalance. For the TextCNN, filter widths {2,3,4,5} and a count of 160 follow Kim
 (2014)'s well-established design. The biggest lever we found was the embedding
 initialisation. Switching from random to pretrained GloVe (200-d) added roughly two
-macro-F1 points, and helped most in the low-data regime (section 7). We also probed embedding
+macro-F1 points, and helped most in the low-data regime (section 8). We also probed embedding
 dimension and vocabulary cut-off. An enhanced-capacity variant with mean+max pooling plus a
 hidden layer, and a larger `min_freq=1` vocabulary, each slightly hurt on validation,
 so we kept the simpler, better-generalising design. Dropout of 0.4, Adam at 1e-3, and
 early stopping on validation macro-F1 with patience 5 are the remaining controls.
 They prevent overfitting without a manual epoch search.
 
-### 5.4 The hyperparameter search we actually ran
+**The search we actually ran.**
 
 Describing a tuning strategy is not the same as running one, so we implemented the search in
 `scripts/tune.py` and report it here. Every configuration is fit on the training split and
@@ -318,10 +286,42 @@ would be reading noise as signal. We therefore kept the shipped configuration ra
 rebuilding every downstream artefact to chase a difference we cannot distinguish from chance,
 and we report the search here so the reader can see the evidence for that call rather than take
 it on trust. The honest conclusion is that both models are insensitive to these hyperparameters
-in the ranges that matter, and that the embedding initialisation discussed in section 5.3 was a
+in the ranges that matter, and that the embedding initialisation discussed in section 5.2 was a
 far larger lever than any of them.
 
 ---
+
+### 5.3 Models evaluated (naive, classical, deep, and the rationale for each)
+
+**(a) Naive baseline, majority class** (`NaiveBaseline`). Predicts the single most
+frequent class for every input and exposes the training class priors as its
+probabilities. This establishes the accuracy floor and shows exactly
+why accuracy is misleading here. It is the reference every real model has to beat on
+macro-F1.
+
+**(b) Classical ML, TF-IDF + Logistic Regression** (`ClassicalModel`). Word 1-2 gram
+TF-IDF with sublinear tf, `min_df=3`, and up to 40k features feeds a multinomial logistic
+regression with balanced class weights. This is a strong, fast, and
+**interpretable** baseline. The linear coefficients name the exact tokens that push a
+complaint toward each component, which powers the app's explanations and lets us audit
+what the model learned. Class weighting counteracts the residual imbalance.
+
+**(c) Deep learning, TextCNN with GloVe transfer learning** (`TextCNNModel`,
+deployed). An embedding layer initialised with pretrained 200-d GloVe vectors
+(Pennington et al., 2014, covering ~85% of our vocabulary) and fine-tuned during
+training feeds four parallel 1-D convolutions of widths 2/3/4/5 with 160 filters each,
+acting as learned n-gram detectors. Max-over-time pooling keeps the strongest
+activation per filter, then dropout of 0.4, then a linear classifier. It is trained with Adam and
+class-weighted cross-entropy, early-stopped on validation macro-F1.
+The CNN learns phrase-level, order-sensitive cues like "lost power" and "goes to
+the floor" that bag-of-words misses. The GloVe initialisation is a lightweight
+form of transfer learning. It injects general-language knowledge the model cannot
+learn from ~26k complaints alone, and that is what lifts it from clearly behind the
+classical baseline up to parity with it (section 6). The pretrained vectors are needed only at
+training time. The learned embedding matrix is baked into the ~15 MB `.pt`, so the
+deployed model stays tiny, CPU-fast, and fully self-contained. We use GloVe rather than
+fine-tuning a large transformer to keep the system lightweight and deployable, and section 11
+discusses that trade-off.
 
 ## 6. Results
 
@@ -348,7 +348,7 @@ which is exactly what TF-IDF captures best.
 ### 6.2 Per-class performance
 
 Both models are well-balanced across the long tail. The head/tail F1 gap is only
-~0.02-0.03 (section 7.4), a payoff from capping head classes and class-weighting. Per-class
+~0.02-0.03 (section 8.4), a payoff from capping head classes and class-weighting. Per-class
 F1 for the deployed deep model ranges from strong to hard:
 
 - **Easiest:** AIR BAGS 0.91, SEATS/SEAT BELTS 0.88, EXTERIOR LIGHTING 0.87,
@@ -369,111 +369,7 @@ the multi-label direction in future work.
 
 ![Row-normalised confusion matrix for the deployed deep model. The bright off-diagonal cells are the adjacent systems it confuses.](data/outputs/plots/confusion_deep.png)
 
-## 7. Experiment Write-Up
-
-### 7.1 Primary experiment: training-set-size sensitivity (the cold-start question)
-
-**Motivation.** A real deployment starts cold. When a platform begins tracking a new vehicle
-or launches the model, it has few labelled complaints. How much labelled data does each model
-actually need before it is useful, and does the ranking between models change when data is
-scarce? That question decides whether the neural model is worth deploying at launch or only
-once a backlog exists.
-
-**Experimental setup.**
-
-- *Independent variable.* Training-set size, at five levels: 5%, 10%, 25%, 50%, and 100% of
-  the training split, giving 1,306 / 2,613 / 6,534 / 13,069 / 26,138 examples.
-- *Dependent variable.* Macro-F1 on the test split.
-- *Procedure.* At each level we draw a subset of the training split, refit all three models
-  from scratch on that subset, and score them on the test split. Nothing is warm-started, so
-  each point is an independent training run.
-- *Sampling.* Subsets are drawn with a fixed random seed (42) using a stratified draw, so the
-  class distribution at 5% matches the class distribution at 100%. Without stratification the
-  rare classes would vanish from the small subsets and the curve would measure class coverage
-  rather than data efficiency.
-- *Controls held constant.* The test split is the same 5,602 examples at every level and is
-  never resampled, so any movement in the curve comes from training size alone. Preprocessing,
-  the label taxonomy, the hyperparameters chosen in section 5.4, and the seed are identical
-  across all levels and all three models.
-- *Validation use.* The deep model's early stopping uses the full validation split at every
-  level. Validation is used only to decide when to stop, never to select the reported score.
-- *Deep-model budget.* For the curve, the TextCNN is capped at 12 epochs with early stopping
-  on validation macro-F1, which keeps five retrains affordable while still letting each run
-  converge.
-- *Metric choice.* Macro-F1, for the reason given in section 4: at small sizes the rare
-  classes are exactly what degrades first, and accuracy would hide it.
-
-**Limitation.** Each point is a single run at one seed, so small differences between adjacent
-points are within run-to-run noise. We therefore read the shape of the curves and the gap
-between models, not one-point differences.
-
-**Results (macro-F1).**
-
-| Train size | 1,306 | 2,613 | 6,534 | 13,069 | 26,138 |
-|---|---|---|---|---|---|
-| Naive | 0.012 | 0.012 | 0.012 | 0.012 | 0.012 |
-| Classical | 0.707 | 0.726 | 0.748 | 0.762 | **0.768** |
-| Deep (TextCNN + GloVe) | 0.706 | 0.732 | 0.753 | 0.762 | 0.765 |
-
-**Interpretation.** This is the experiment where GloVe pays off. In an earlier
-from-scratch version of the CNN with no pretrained embeddings, the deep model trailed the
-classical model by 11 macro-F1 points at the smallest size, 0.596 vs 0.707. It
-was starved for data. With GloVe transfer learning that gap disappears. At 1,306
-examples the two are tied, 0.706 vs 0.707, and in the mid-data regime the deep model
-actually edges ahead, 0.732 vs 0.726 at 2.6k and 0.753 vs 0.748 at 6.5k. Both curves
-are still rising gently at full data, with the classical model finishing marginally on
-top.
-
-![Learning curves. With GloVe, the deep model tracks the classical model even at small training sizes.](data/outputs/plots/learning_curve.png)
-
-**Recommendation.** Pretrained embeddings should be treated as mandatory for the neural
-model in any low-resource or cold-start deployment. Without them the classical model is
-strictly preferable. At full data either model is a fine choice.
-
-### 7.2 Robustness to noisy text
-
-Real complaints are full of typos and inconsistent casing, so we inject character-level
-noise (deletion/substitution/insertion) at increasing rates and re-score.
-
-| Char-noise rate | 0% | 5% | 10% | 20% | 30% |
-|---|---|---|---|---|---|
-| Classical | 0.768 | 0.724 | 0.684 | 0.555 | 0.418 |
-| Deep (TextCNN + GloVe) | 0.762 | 0.704 | 0.617 | 0.431 | 0.276 |
-
-**Interpretation.** The classical model is clearly more robust. At 10% noise it
-holds 0.684 against the CNN's 0.617, and the gap widens as noise grows. The reason is that the word-level
-CNN vocabulary sends every typo to `<unk>` and discards the signal, whereas TF-IDF's larger
-n-gram vocabulary degrades more gracefully. This is the strongest argument for the
-classical model, and for the future-work move to subword embeddings.
-
-![Macro-F1 as character noise increases. The classical model holds up better than the word-level CNN.](data/outputs/plots/robustness.png)
-
-### 7.3 Confidence-gated abstention (deployment triage)
-
-Because a triage system can defer, we sweep a confidence threshold on the deployed
-model: answer only above `t`, route the rest to a human.
-
-| Threshold `t` | 0.0 | 0.5 | 0.7 | 0.9 |
-|---|---|---|---|---|
-| Coverage (fraction answered) | 1.00 | 0.89 | 0.77 | 0.60 |
-| Accuracy on answered | 0.771 | 0.822 | 0.864 | 0.912 |
-
-**Interpretation & recommendation.** Abstention buys large accuracy gains. Answering the
-most-confident 77% of complaints reaches 86% accuracy, and the top 60% reach
-**91%**. A production system should auto-route above a tuned threshold and escalate the
-uncertain remainder. That turns a 0.77-accuracy model into a high-precision autorouter
-plus a managed human queue.
-
-![Accuracy against coverage as the confidence threshold rises. Answering fewer, more confident cases lifts accuracy sharply.](data/outputs/plots/confidence_coverage.png)
-
-### 7.4 Head vs. tail
-
-Splitting classes into the 5 most frequent head classes and 9 rarer tail classes, the
-classical model scores head 0.782 and tail 0.761, while the deep model scores head 0.781 and tail 0.751. The ~0.02-0.03 gap is
-small, which confirms that the head-class cap plus class-weighted training kept the
-rare-but-critical systems from being neglected.
-
-## 8. Error Analysis
+## 7. Error Analysis
 
 We surfaced the deployed model's most confident mistakes, all at about 1.00 confidence.
 These are the dangerous kind, where the model is both wrong and sure. Here are five representative cases.
@@ -513,7 +409,142 @@ classification with calibrated per-label thresholds, rather than more model capa
 
 ---
 
-## 9. Commercial Viability
+## 8. Experiment Write-Up
+
+### 8.1 Primary experiment: training-set-size sensitivity (the cold-start question)
+
+**Motivation.** A real deployment starts cold. When a platform begins tracking a new vehicle
+or launches the model, it has few labelled complaints. How much labelled data does each model
+actually need before it is useful, and does the ranking between models change when data is
+scarce? That question decides whether the neural model is worth deploying at launch or only
+once a backlog exists.
+
+**Experimental plan and setup.**
+
+- *Independent variable.* Training-set size, at five levels: 5%, 10%, 25%, 50%, and 100% of
+  the training split, giving 1,306 / 2,613 / 6,534 / 13,069 / 26,138 examples.
+- *Dependent variable.* Macro-F1 on the test split.
+- *Procedure.* At each level we draw a subset of the training split, refit all three models
+  from scratch on that subset, and score them on the test split. Nothing is warm-started, so
+  each point is an independent training run.
+- *Sampling.* Subsets are drawn with a fixed random seed (42) using a stratified draw, so the
+  class distribution at 5% matches the class distribution at 100%. Without stratification the
+  rare classes would vanish from the small subsets and the curve would measure class coverage
+  rather than data efficiency.
+- *Controls held constant.* The test split is the same 5,602 examples at every level and is
+  never resampled, so any movement in the curve comes from training size alone. Preprocessing,
+  the label taxonomy, the hyperparameters chosen in section 5.2, and the seed are identical
+  across all levels and all three models.
+- *Validation use.* The deep model's early stopping uses the full validation split at every
+  level. Validation is used only to decide when to stop, never to select the reported score.
+- *Deep-model budget.* For the curve, the TextCNN is capped at 12 epochs with early stopping
+  on validation macro-F1, which keeps five retrains affordable while still letting each run
+  converge.
+- *Metric choice.* Macro-F1, for the reason given in section 4: at small sizes the rare
+  classes are exactly what degrades first, and accuracy would hide it.
+
+**Limitation.** Each point is a single run at one seed, so small differences between adjacent
+points are within run-to-run noise. We therefore read the shape of the curves and the gap
+between models, not one-point differences.
+
+**Results (macro-F1).**
+
+| Train size | 1,306 | 2,613 | 6,534 | 13,069 | 26,138 |
+|---|---|---|---|---|---|
+| Naive | 0.012 | 0.012 | 0.012 | 0.012 | 0.012 |
+| Classical | 0.707 | 0.726 | 0.748 | 0.762 | **0.768** |
+| Deep (TextCNN + GloVe) | 0.706 | 0.732 | 0.753 | 0.762 | 0.765 |
+
+**Interpretation.** This is the experiment where GloVe pays off. In an earlier
+from-scratch version of the CNN with no pretrained embeddings, the deep model trailed the
+classical model by 11 macro-F1 points at the smallest size, 0.596 vs 0.707. It
+was starved for data. With GloVe transfer learning that gap disappears. At 1,306
+examples the two are tied, 0.706 vs 0.707, and in the mid-data regime the deep model
+actually edges ahead, 0.732 vs 0.726 at 2.6k and 0.753 vs 0.748 at 6.5k. Both curves
+are still rising gently at full data, with the classical model finishing marginally on
+top.
+
+![Learning curves. With GloVe, the deep model tracks the classical model even at small training sizes.](data/outputs/plots/learning_curve.png)
+
+**Recommendation.** Pretrained embeddings should be treated as mandatory for the neural
+model in any low-resource or cold-start deployment. Without them the classical model is
+strictly preferable. At full data either model is a fine choice.
+
+### 8.2 Robustness to noisy text
+
+Real complaints are full of typos and inconsistent casing, so we inject character-level
+noise (deletion/substitution/insertion) at increasing rates and re-score.
+
+| Char-noise rate | 0% | 5% | 10% | 20% | 30% |
+|---|---|---|---|---|---|
+| Classical | 0.768 | 0.724 | 0.684 | 0.555 | 0.418 |
+| Deep (TextCNN + GloVe) | 0.762 | 0.704 | 0.617 | 0.431 | 0.276 |
+
+**Interpretation.** The classical model is clearly more robust. At 10% noise it
+holds 0.684 against the CNN's 0.617, and the gap widens as noise grows. The reason is that the word-level
+CNN vocabulary sends every typo to `<unk>` and discards the signal, whereas TF-IDF's larger
+n-gram vocabulary degrades more gracefully. This is the strongest argument for the
+classical model, and for the future-work move to subword embeddings.
+
+![Macro-F1 as character noise increases. The classical model holds up better than the word-level CNN.](data/outputs/plots/robustness.png)
+
+### 8.3 Confidence-gated abstention (deployment triage)
+
+Because a triage system can defer, we sweep a confidence threshold on the deployed
+model: answer only above `t`, route the rest to a human.
+
+| Threshold `t` | 0.0 | 0.5 | 0.7 | 0.9 |
+|---|---|---|---|---|
+| Coverage (fraction answered) | 1.00 | 0.89 | 0.77 | 0.60 |
+| Accuracy on answered | 0.771 | 0.822 | 0.864 | 0.912 |
+
+**Interpretation & recommendation.** Abstention buys large accuracy gains. Answering the
+most-confident 77% of complaints reaches 86% accuracy, and the top 60% reach
+**91%**. A production system should auto-route above a tuned threshold and escalate the
+uncertain remainder. That turns a 0.77-accuracy model into a high-precision autorouter
+plus a managed human queue.
+
+![Accuracy against coverage as the confidence threshold rises. Answering fewer, more confident cases lifts accuracy sharply.](data/outputs/plots/confidence_coverage.png)
+
+### 8.4 Head vs. tail
+
+Splitting classes into the 5 most frequent head classes and 9 rarer tail classes, the
+classical model scores head 0.782 and tail 0.761, while the deep model scores head 0.781 and tail 0.751. The ~0.02-0.03 gap is
+small, which confirms that the head-class cap plus class-weighted training kept the
+rare-but-critical systems from being neglected.
+
+## 9. Conclusions
+
+On 37k real NHTSA complaints, a disciplined three-model comparison for
+14-way component routing shows four things. First, the task is very learnable from narrative text.
+Both the classical TF-IDF model and the GloVe-initialised TextCNN reach ~0.77 macro-F1,
+crushing the 0.01 naive floor. Second, the metric choice matters more than the model.
+Accuracy alone would have hidden the naive baseline's uselessness and the tail-class
+behaviour. Third, transfer learning through GloVe is what makes the neural model competitive.
+It closes a two-point gap and helps most when labels are scarce. Fourth, a simple,
+interpretable classical model is a remarkably strong, cheap baseline that a real product
+could ship. The deployed app turns these models into a usable safety check for owners,
+with word-level explanations, a safety tier and a plain next step, and confidence-gated
+abstention so it can say "not sure" instead of falsely reassuring someone.
+
+## 10. Future Work
+What we would do with another semester:
+
+- **Multi-label routing.** About 33% of complaints touch several systems, so move from
+  primary-component single-label to true multi-label prediction with per-label
+  thresholds.
+- **Subword / transformer encoders.** Fine-tune a domain-adapted DistilBERT or use
+  fastText subword embeddings, both to chase the accuracy ceiling and to fix the
+  character-noise brittleness the robustness study exposed.
+- **Calibration & abstention policy.** Temperature-scale the probabilities and learn a
+  cost-sensitive abstention threshold per class. Missing an air-bag defect is not the same as missing a
+  wiper complaint.
+- **Temporal defect detection.** Layer per-component time-series anomaly detection on
+  top of the router to surface emerging defect clusters, which is the actual NHTSA mission.
+- **Active learning for the tail.** Prioritise human labelling of low-confidence
+  tail-class complaints to lift the components that matter most per unit of annotation.
+
+## 11. Commercial Viability Statement
 
 Is this suitable for real-world use? As a consumer safety-awareness aid, yes, with clear
 framing. As anything that replaces a mechanic or an official recall, no. Concretely:
@@ -531,7 +562,7 @@ framing. As anything that replaces a mechanic or an official recall, no. Concret
   owner's trust.
 - **Why not autonomous or authoritative.** Safety is high-stakes and the tail classes are
   the ones that matter most. At ~0.77 macro-F1 the tool is a first read, not a diagnosis.
-  The confidence-gating result (section 7) is the mechanism that keeps it honest: when the
+  The confidence-gating result (section 8) is the mechanism that keeps it honest: when the
   model is unsure it should say so rather than hand out a false all-clear.
 - **The model-choice trade-off.** Our evaluation shows a strong classical baseline is on
   par with the neural model, so a lean version could ship the classical model alone. We
@@ -542,7 +573,7 @@ framing. As anything that replaces a mechanic or an official recall, no. Concret
 **Verdict:** viable as a consumer safety-awareness aid and as an internal tagging engine,
 not as a diagnosis or an official safety authority.
 
-## 10. Ethics Statement
+## 12. Ethics Statement
 
 - **Safety guidance to non-experts.** The most serious risk is an owner over-trusting the
   tool. A confident wrong all-clear on a real defect, or needless alarm on a harmless one,
@@ -561,36 +592,6 @@ not as a diagnosis or an official safety authority.
   silently failing rare-but-critical systems.
 - **Transparency.** Every prediction ships with the evidence behind it and a confidence
   score, so an owner can see the reasoning and decide for themselves rather than defer.
-
-## 11. Conclusions & Future Work
-
-**Conclusions.** On 37k real NHTSA complaints, a disciplined three-model comparison for
-14-way component routing shows four things. First, the task is very learnable from narrative text.
-Both the classical TF-IDF model and the GloVe-initialised TextCNN reach ~0.77 macro-F1,
-crushing the 0.01 naive floor. Second, the metric choice matters more than the model.
-Accuracy alone would have hidden the naive baseline's uselessness and the tail-class
-behaviour. Third, transfer learning through GloVe is what makes the neural model competitive.
-It closes a two-point gap and helps most when labels are scarce. Fourth, a simple,
-interpretable classical model is a remarkably strong, cheap baseline that a real product
-could ship. The deployed app turns these models into a usable safety check for owners,
-with word-level explanations, a safety tier and a plain next step, and confidence-gated
-abstention so it can say "not sure" instead of falsely reassuring someone.
-
-**Future work, given another semester.**
-
-- **Multi-label routing.** About 33% of complaints touch several systems, so move from
-  primary-component single-label to true multi-label prediction with per-label
-  thresholds.
-- **Subword / transformer encoders.** Fine-tune a domain-adapted DistilBERT or use
-  fastText subword embeddings, both to chase the accuracy ceiling and to fix the
-  character-noise brittleness the robustness study exposed.
-- **Calibration & abstention policy.** Temperature-scale the probabilities and learn a
-  cost-sensitive abstention threshold per class. Missing an air-bag defect is not the same as missing a
-  wiper complaint.
-- **Temporal defect detection.** Layer per-component time-series anomaly detection on
-  top of the router to surface emerging defect clusters, which is the actual NHTSA mission.
-- **Active learning for the tail.** Prioritise human labelling of low-confidence
-  tail-class complaints to lift the components that matter most per unit of annotation.
 
 ## References
 
