@@ -88,9 +88,9 @@ prefer Render's free tier: in the Render dashboard pick New, Blueprint, connect 
 Apply. The HF Space front-matter at the top of this file still works too, though HF now
 needs a PRO plan to host Docker Spaces on free CPU.
 
-A scheduled GitHub Action in `.github/workflows/keep-alive.yml` pings `/health` every 30
-minutes so a free host does not sleep during grading. Set the `SPACE_URL` repo variable to
-the deployed URL.
+A scheduled GitHub Action in `.github/workflows/keep-alive.yml` pings `/health` every five
+minutes so the service stays warm and the first click during grading is not a cold start.
+Set the `SPACE_URL` repo variable to the deployed URL.
 
 - `GET /health` returns `{"status":"ok","models_loaded":3,...}`
 - `POST /api/predict` with `{"text": "...", "model": "deep"}` returns the prediction and explanation
