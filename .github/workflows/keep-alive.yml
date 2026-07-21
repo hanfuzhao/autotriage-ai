@@ -4,7 +4,7 @@ name: keep-alive
 # grading window. Set the SPACE_URL repository variable to your Space URL.
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes
+    - cron: "*/5 * * * *"   # every 5 minutes
   workflow_dispatch:
 
 jobs:
