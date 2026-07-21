@@ -138,6 +138,12 @@ def build():
         "And whether it is worth reporting to NHTSA",
         "It shows the exact words behind the call, so you can decide to trust it",
     ])
+    content_slide(prs, "Why this is new work", [
+        "Not my hackathon: that was sentiment on consumer reviews, fine-tuned DistilBERT",
+        "This is safety complaints, which system failed, a TextCNN with GloVe",
+        "Published work on this database clusters it for regulators (Ghazizadeh et al., 2014)",
+        "I pointed the same data at the owner, with explanations and a safety tier",
+    ], sub="Different data, question, model, and user")
     content_slide(prs, "Live demo", [
         "autotriage-ai-unfvnsiy6a-uc.a.run.app",
         "Most likely system, confidence, and the other systems it could be",

@@ -1,7 +1,7 @@
 # AutoTriage AI, 5-minute pitch script
 
 Word-for-word, written to be spoken out loud at a calm pace, roughly 110 words a minute.
-Slash marks are breathing points. Slide cues in brackets tell you when to advance.
+Slash marks are breathing points. Slide cues in brackets tell you when to advance. The deck has 9 slides.
 
 Live demo: https://autotriage-ai-unfvnsiy6a-uc.a.run.app
 Code: https://github.com/hanfuzhao/autotriage-ai
@@ -25,18 +25,20 @@ Here's what most people don't know. Safety recalls start with ordinary owners fi
 with NHTSA. / But only if the owner recognises there's a problem and files it against the right
 system. / That gap is what I went after.
 
-## [SLIDE 3, what I built] 0:55 to 1:40, the product, and why it's new
+## [SLIDE 3, what I built] 0:55 to 1:20, the product
 
 So I built AutoTriage. You describe what your car did, in plain words. / It tells you which of
 fourteen car systems it's about, how serious that is, and whether it's worth reporting. Trained
-on thirty-seven thousand real NHTSA complaints, and it shows the words it keyed on. /
+on thirty-seven thousand real NHTSA complaints, and it shows the words it keyed on.
+
+## [SLIDE 4, why this is new work] 1:20 to 1:45, originality
 
 Two things make this new. / I did car text for the hackathon, but that was sentiment, how an
 owner feels about a review. Here it's safety complaints, not reviews. Which system failed, not
 how someone feels. A TextCNN, not a fine-tuned transformer. / And the published work on this
 database clusters it for regulators. I pointed it at the owner instead.
 
-## [SLIDE 4, live demo] 1:40 to 2:55, the demo
+## [SLIDE 5, live demo] 1:45 to 2:55, the demo
 
 Let me show you. /
 
@@ -48,7 +50,7 @@ Look at the highlighted words. Airbag, sensor, deploy. That's the reasoning, on 
 Now a flickering headlight. / Lower tier, keep-an-eye-on-it. / And I can flip between all three
 models on the same text.
 
-## [SLIDES 5 and 6, models and results] 2:55 to 3:55, how I judged it
+## [SLIDES 6 and 7, models and results] 2:55 to 3:55, how I judged it
 
 Three models, judged honestly. / This data is lopsided: common systems have thousands of
 complaints, rare ones a few hundred. / So I don't report plain accuracy, because a lazy model
@@ -58,14 +60,14 @@ equally. / The naive baseline scores about one percent. Both real models land ne
 That choice came straight from the hackathon, where accuracy read eighty-six percent while the
 model caught almost none of the unhappy customers. I wasn't going to be fooled twice.
 
-## [SLIDE 7, what I learned] 3:55 to 4:25, the key finding
+## [SLIDE 8, what I learned] 3:55 to 4:25, the key finding
 
 The finding I'm proudest of. / When training data is scarce, my neural model used to fall about
 eleven points behind the simple one. Adding pretrained word vectors closed that gap completely. /
 And for a safety tool, this matters most: when the model is unsure, it says so, instead of
 handing someone a false all-clear.
 
-## [SLIDE 8, why it matters and the ask] 4:25 to 4:50, the close
+## [SLIDE 9, why it matters and the ask] 4:25 to 4:50, the close
 
 Take that helpless feeling and turn it into a clear read and a next step. / And because every
 report an owner files feeds the recall system, helping one driver helps the next. / It's live
