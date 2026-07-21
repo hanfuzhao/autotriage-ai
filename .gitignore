@@ -27,3 +27,9 @@ data/raw/glove.6B.zip
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/outputs/.gitkeep
+
+# Presentation prep, kept locally, not published
+PITCH.md
+PITCH.pptx
+DEMO_CHEATSHEET.md
+scripts/make_slides.py
