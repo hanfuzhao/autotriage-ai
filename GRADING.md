@@ -86,13 +86,16 @@ All sections are in `TECHNICAL_REPORT.pdf`.
 
 ## In-Class Pitch
 
+The pitch is delivered as a video and submitted as a separate link, so the slide deck and
+speaking notes are not part of this repository.
+
 | Checklist item | Where |
 |---|---|
-| Problem & motivation clearly articulated | `PITCH.md`, 0:00 to 0:45 |
-| Approach overview concise and accurate | `PITCH.md`, 0:45 to 1:30 |
-| Live demo shown, or video link | `PITCH.md`, 1:30 to 3:00, against the live URL |
-| Results, insights, key findings highlighted | `PITCH.md`, 3:00 to 4:10 |
-| Presentation respects the hard time limit | Script is written and timed for a slow delivery inside 5:00. Slides: `PITCH.pptx`, 8 slides |
+| Problem & motivation clearly articulated | Video, opening section |
+| Approach overview concise and accurate | Video, followed by the originality contrast |
+| Live demo shown, or video link | Video, demonstrated against the live URL above |
+| Results, insights, key findings highlighted | Video, the model comparison and the cold-start finding |
+| Presentation respects the hard time limit | Delivered inside the 5:00 limit |
 
 ## Code & Repository, Git Best Practices
 

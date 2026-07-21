@@ -100,8 +100,6 @@ the deployed URL.
 ```
 README.md                 this file
 TECHNICAL_REPORT.md       full written report
-PITCH.md                  5-minute pitch script
-PITCH.pptx                pitch slide deck
 requirements.txt          full deps for training and app
 requirements-deploy.txt   lean inference-only deps, CPU torch
 Makefile
@@ -115,7 +113,6 @@ scripts/
   evaluate.py             metrics and plots
   experiment.py           learning curves, noise robustness, gating, head/tail
   eda.py                  class distribution and length stats
-  make_slides.py          builds the pitch deck
 models/                   trained models and labels.json
 data/
   raw/                    API dump (gitignored) plus a committed sample.csv
