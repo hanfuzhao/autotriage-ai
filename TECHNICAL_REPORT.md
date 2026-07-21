@@ -2,6 +2,13 @@
 
 Module 2 Project. Natural Language Processing. Technical Report.
 
+Live app: https://autotriage-ai-unfvnsiy6a-uc.a.run.app
+Code: https://github.com/hanfuzhao/autotriage-ai
+
+A checklist-by-checklist map of where every required item appears, in this report and in
+the repository, is in `GRADING.md`. Data splits, the hyperparameter search, and the five
+error cases are in sections 2, 5.4, and 8 respectively.
+
 ---
 
 ## Abstract
@@ -101,13 +108,29 @@ VISIBILITY/WIPER, STRUCTURE, VEHICLE SPEED CONTROL, SUSPENSION, SEATS/SEAT BELTS
 
 ## 3. Related Work
 
-**Complaint and defect mining.** A body of work applies NLP to NHTSA and consumer
-complaint text, historically to surface emerging defects and predict recalls. Classic
-approaches use bag-of-words or TF-IDF features with linear classifiers, or topic models
-such as LDA, to cluster complaints and flag anomalies. More recent work fine-tunes
-transformer encoders for defect classification. Most of these efforts target
-recall and defect discovery, an unsupervised or weakly-supervised trend-detection goal,
-rather than supervised routing of a narrative to a component taxonomy.
+**Prior work on this exact database.** The NHTSA complaint corpus has been studied before,
+and it is worth being specific about who did what, because it defines what is left to do.
+
+The closest reference point is Ghazizadeh, McDonald, and Lee (2014), who applied text mining
+to the free-response narratives in the NHTSA vehicle owner's complaint database. Their
+pipeline reduced the term space and then used semantic clustering to pull out clusters of
+vehicle problems, which they tracked chronologically to show how complaint patterns for
+particular components evolved over time. Ghazizadeh and Lee (2012) did earlier work in the
+same vein, clustering narratives to surface failure patterns per component. A related line
+of work connects the complaint database to outcomes rather than to text structure, linking
+consumer complaint volume to traffic fatalities. On the applied side, systems such as
+SmarTxT have been built to help NHTSA analysts triage a defect archive that is far too large
+to read by hand.
+
+Two things stand out across all of it. First, the methods are predominantly **unsupervised**:
+clustering and topic modelling to discover what is in the corpus, not a trained classifier
+that assigns a new complaint to a known category. Second, the audience is the **regulator or
+the manufacturer**, analysing the archive after the fact to spot a defect trend. Nobody in
+this literature is serving the owner who filed the complaint in the first place.
+
+More recent general work fine-tunes transformer encoders for defect classification, which
+raises accuracy but at a parameter and latency cost that a small deployed service does not
+want to carry.
 
 **Text classification methods.** Our modeling tiers follow the standard progression in
 text classification. TF-IDF with n-grams plus a linear model, either logistic regression or
@@ -118,18 +141,39 @@ competitive on short-to-medium documents and cheap enough to deploy on CPU. Larg
 pretrained transformers such as BERT and DistilBERT typically define the accuracy ceiling,
 but they cost far more in parameters and latency.
 
-**What is new here.** Prior complaint-mining work almost always serves the regulator or
-the manufacturer, mining the archive after the fact to find defects. We point the same
-capability the other way, at the owner who notices the problem first, and package it as an
-interpretable safety check rather than a back-office classifier. Concretely, three things.
-First, we frame the task as a clean supervised 14-class problem on a compact, de-duplicated
-taxonomy. Second, we centre the evaluation on the long tail of rarer-but-critical systems
-like airbags and brakes rather than headline accuracy, because for an owner-facing tool a
-confident wrong all-clear on a critical system is the worst possible error. Third, we
-deliver a live, interpretable product with word-level explanations, a safety tier with a
-plain next step, and confidence-gated abstention, instead of a black-box label. Our aim is
-greater insight and usability rather than chasing the transformer SOTA ceiling, and we
-discuss that trade-off explicitly in section 9.
+### Originality statement
+
+This project is new work built for this course. It is not reused from another course, from
+prior research, or from my job. Measured against the prior work named above, four things are
+genuinely different.
+
+**1. Supervised routing instead of unsupervised discovery.** Ghazizadeh et al. cluster the
+archive to find out what problems exist. We train a classifier that takes a complaint it has
+never seen and assigns it to one of 14 components. Those are different tasks with different
+outputs: they produce clusters for an analyst to interpret, we produce a label, a confidence,
+and an action. That also makes our work measurable in a way clustering is not, since we can
+report macro-F1 against held-out ground truth.
+
+**2. The owner is the user, not the regulator.** Every prior system points at the archive.
+We point at the person who just had something go wrong with their car, before the complaint
+is even filed. That reframing changes the product: it needs a severity tier, a plain next
+step, and an honest "not sure," none of which a batch analytics pipeline needs.
+
+**3. Evaluation centred on the long tail, not headline accuracy.** We report macro-F1 as the
+headline and analyse head versus tail classes separately, because for an owner-facing safety
+tool a confident wrong all-clear on air bags or brakes is the worst error the system can
+make. Plain accuracy hides exactly that failure, and our naive baseline proves it: 0.094
+accuracy against 0.012 macro-F1.
+
+**4. A live, interpretable system rather than an offline study.** The deployed app names the
+words behind each prediction, attaches a safety tier, and abstains below a confidence
+threshold. The prior work produces figures in a paper; this produces something a person can
+use, with the reasoning visible.
+
+What this project does not claim is a new architecture or state-of-the-art accuracy. The
+contribution is the reframing, the evaluation discipline around the tail, and the working
+interpretable system. Section 9 discusses that trade-off honestly, including the finding
+that a simple classical model matches our neural one.
 
 ---
 
@@ -238,6 +282,45 @@ so we kept the simpler, better-generalising design. Dropout of 0.4, Adam at 1e-3
 early stopping on validation macro-F1 with patience 5 are the remaining controls.
 They prevent overfitting without a manual epoch search.
 
+### 5.4 The hyperparameter search we actually ran
+
+Describing a tuning strategy is not the same as running one, so we implemented the search in
+`scripts/tune.py` and report it here. Every configuration is fit on the training split and
+scored by macro-F1 on the validation split. The test split is never consulted for selection,
+which keeps the numbers in section 6 an honest held-out estimate. The seed is fixed at 42
+throughout, and the raw output is in `data/outputs/tuning.json`.
+
+For the classical model we searched the regularisation strength `C` over {0.5, 1, 3, 10}
+crossed with an n-gram ceiling of unigrams or bigrams, giving eight configurations. For the
+TextCNN we swept dropout over {0.3, 0.4, 0.5} crossed with a filter count of 128 or 160, giving
+six configurations, each trained for up to ten epochs with early stopping. The scope is
+deliberately small. These are the knobs that plausibly move macro-F1, and an exhaustive sweep
+over a model this size would cost more compute than the result could justify.
+
+| Model | Configurations | Validation macro-F1 range | Best configuration | Best score |
+|---|---|---|---|---|
+| Classical | 8 | 0.744 to 0.771 | `C=1.0`, n-grams up to 2 | 0.7706 |
+| Deep TextCNN | 6 | 0.761 to 0.765 | `dropout=0.5`, 128 filters | 0.7648 |
+
+![Validation macro-F1 for every configuration tried. Selection is on the validation split only.](data/outputs/plots/hyperparameter_tuning.png)
+
+The most useful thing the search tells us is how flat the response surface is. Once the
+clearly over-regularised end is excluded, every classical configuration lands between 0.763 and
+0.771, and the entire TextCNN sweep spans just 0.004 macro-F1 from worst to best. The one real
+signal is that `C=10` is too weak a penalty and costs about three points, which fits the
+expectation that a high-dimensional sparse TF-IDF space needs meaningful regularisation.
+
+That flatness also shapes what we did with the result. The shipped configuration, `C=3.0` for
+the classical model and dropout 0.4 with 160 filters for the TextCNN, scores 0.7697 and 0.7626
+respectively, which puts it 0.0009 and 0.0022 below the grid winners. Both gaps are smaller than
+the run-to-run variation we see from changing the seed, so treating them as real improvements
+would be reading noise as signal. We therefore kept the shipped configuration rather than
+rebuilding every downstream artefact to chase a difference we cannot distinguish from chance,
+and we report the search here so the reader can see the evidence for that call rather than take
+it on trust. The honest conclusion is that both models are insensitive to these hyperparameters
+in the ranges that matter, and that the embedding initialisation discussed in section 5.3 was a
+far larger lever than any of them.
+
 ---
 
 ## 6. Results
@@ -290,11 +373,39 @@ the multi-label direction in future work.
 
 ### 7.1 Primary experiment: training-set-size sensitivity (the cold-start question)
 
-**Plan.** A real deployment starts cold. When a platform begins tracking a new vehicle
-or launches the model, it has few labelled complaints. How much data does each model
-need? We retrain every model on stratified subsets, from 5% up to 100% of the training set, and
-score macro-F1 on the fixed test set. The setup is controlled and directly relevant
-to deployment economics.
+**Motivation.** A real deployment starts cold. When a platform begins tracking a new vehicle
+or launches the model, it has few labelled complaints. How much labelled data does each model
+actually need before it is useful, and does the ranking between models change when data is
+scarce? That question decides whether the neural model is worth deploying at launch or only
+once a backlog exists.
+
+**Experimental setup.**
+
+- *Independent variable.* Training-set size, at five levels: 5%, 10%, 25%, 50%, and 100% of
+  the training split, giving 1,306 / 2,613 / 6,534 / 13,069 / 26,138 examples.
+- *Dependent variable.* Macro-F1 on the test split.
+- *Procedure.* At each level we draw a subset of the training split, refit all three models
+  from scratch on that subset, and score them on the test split. Nothing is warm-started, so
+  each point is an independent training run.
+- *Sampling.* Subsets are drawn with a fixed random seed (42) using a stratified draw, so the
+  class distribution at 5% matches the class distribution at 100%. Without stratification the
+  rare classes would vanish from the small subsets and the curve would measure class coverage
+  rather than data efficiency.
+- *Controls held constant.* The test split is the same 5,602 examples at every level and is
+  never resampled, so any movement in the curve comes from training size alone. Preprocessing,
+  the label taxonomy, the hyperparameters chosen in section 5.4, and the seed are identical
+  across all levels and all three models.
+- *Validation use.* The deep model's early stopping uses the full validation split at every
+  level. Validation is used only to decide when to stop, never to select the reported score.
+- *Deep-model budget.* For the curve, the TextCNN is capped at 12 epochs with early stopping
+  on validation macro-F1, which keeps five retrains affordable while still letting each run
+  converge.
+- *Metric choice.* Macro-F1, for the reason given in section 4: at small sizes the rare
+  classes are exactly what degrades first, and accuracy would hide it.
+
+**Limitation.** Each point is a single run at one seed, so small differences between adjacent
+points are within run-to-run noise. We therefore read the shape of the curves and the gap
+between models, not one-point differences.
 
 **Results (macro-F1).**
 
@@ -368,31 +479,31 @@ We surfaced the deployed model's most confident mistakes, all at about 1.00 conf
 These are the dangerous kind, where the model is both wrong and sure. Here are five representative cases.
 
 1. **"noise on front passenger side suspension"**, *true: STEERING, pred: SUSPENSION.*
-   Root cause: label ambiguity between two adjacent chassis systems. The narrative
-   literally says "suspension" while NHTSA's primary code is steering. Mitigation:
+   **Root cause.** label ambiguity between two adjacent chassis systems. The narrative
+   literally says "suspension" while NHTSA's primary code is steering. **Mitigation.**
    move to multi-label prediction, or merge the two into a "steering/suspension" super-class.
    We could also abstain on very short narratives, since this one is 6 words.
 
 2. **"Takata inflators ... not one airbag deployed [after crash]"**, *true: STEERING,
-   pred: AIR BAGS.* Root cause: a multi-component complaint whose salient text is
+   pred: AIR BAGS.* **Root cause.** a multi-component complaint whose salient text is
    entirely about airbags, but whose primary NHTSA code is steering. The model reads the
-   text correctly. The single-label framing is what's wrong. Mitigation: multi-label
+   text correctly. The single-label framing is what's wrong. **Mitigation.** multi-label
    output so both AIR BAGS and STEERING can be returned.
 
 3. **"check engine light ... smelling gasoline in the cabin"**, *true: ELECTRICAL SYSTEM,
-   pred: FUEL/PROPULSION.* Root cause: a strong lexical cue, "gasoline", hijacks the
-   prediction over the true electrical fault. Mitigation: richer context modeling, since
+   pred: FUEL/PROPULSION.* **Root cause.** a strong lexical cue, "gasoline", hijacks the
+   prediction over the true electrical fault. **Mitigation.** richer context modeling, since
    the fix was electrical, or multi-label, and down-weight single-token triggers.
 
 4. **"t-boned ... airbags did not deploy ... door smashed in"**, *true: STRUCTURE, pred:
-   AIR BAGS.* Root cause: crash narratives mention many systems, and the vivid "airbags
-   did not deploy" dominates the true structural-damage label. Mitigation: add crash-context features or multi-label. These high-severity cases warrant human review anyway,
+   AIR BAGS.* **Root cause.** crash narratives mention many systems, and the vivid "airbags
+   did not deploy" dominates the true structural-damage label. **Mitigation.** add crash-context features or multi-label. These high-severity cases warrant human review anyway,
    so route them via the safety-critical tier.
 
 5. **"front lights are extremely bright for other drivers ... glare"**, *true:
-   VISIBILITY/WIPER, pred: EXTERIOR LIGHTING.* Root cause: taxonomy overlap. Glare
+   VISIBILITY/WIPER, pred: EXTERIOR LIGHTING.* **Root cause.** taxonomy overlap. Glare
    is a visibility problem described entirely with lighting vocabulary.
-   Mitigation: clearer annotation guidance, or a hierarchical taxonomy that lets
+   **Mitigation.** clearer annotation guidance, or a hierarchical taxonomy that lets
    "headlight glare" live under both.
 
 **Cross-cutting theme.** The confident errors are overwhelmingly multi-component

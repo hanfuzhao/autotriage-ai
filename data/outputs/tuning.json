@@ -1,0 +1,133 @@
+{
+  "protocol": "Grid search. Every configuration is fit on the training split and scored by macro-F1 on the validation split. The test split is not used for selection. Seed is fixed at 42 throughout.",
+  "train_size": 26138,
+  "val_size": 5602,
+  "classical": {
+    "search_space": {
+      "C": [
+        0.5,
+        1.0,
+        3.0,
+        10.0
+      ],
+      "ngram_max": [
+        1,
+        2
+      ]
+    },
+    "trials": [
+      {
+        "C": 0.5,
+        "ngram_max": 1,
+        "val_macro_f1": 0.7664,
+        "seconds": 5.5
+      },
+      {
+        "C": 0.5,
+        "ngram_max": 2,
+        "val_macro_f1": 0.7641,
+        "seconds": 13.0
+      },
+      {
+        "C": 1.0,
+        "ngram_max": 1,
+        "val_macro_f1": 0.766,
+        "seconds": 6.2
+      },
+      {
+        "C": 1.0,
+        "ngram_max": 2,
+        "val_macro_f1": 0.7706,
+        "seconds": 13.0
+      },
+      {
+        "C": 3.0,
+        "ngram_max": 1,
+        "val_macro_f1": 0.7634,
+        "seconds": 8.2
+      },
+      {
+        "C": 3.0,
+        "ngram_max": 2,
+        "val_macro_f1": 0.7697,
+        "seconds": 20.8
+      },
+      {
+        "C": 10.0,
+        "ngram_max": 1,
+        "val_macro_f1": 0.7439,
+        "seconds": 12.6
+      },
+      {
+        "C": 10.0,
+        "ngram_max": 2,
+        "val_macro_f1": 0.7647,
+        "seconds": 26.4
+      }
+    ],
+    "best": {
+      "C": 1.0,
+      "ngram_max": 2,
+      "val_macro_f1": 0.7706,
+      "seconds": 13.0
+    }
+  },
+  "deep": {
+    "search_space": {
+      "dropout": [
+        0.3,
+        0.4,
+        0.5
+      ],
+      "num_filters": [
+        128,
+        160
+      ],
+      "max_epochs": 10
+    },
+    "trials": [
+      {
+        "dropout": 0.3,
+        "num_filters": 128,
+        "val_macro_f1": 0.7617,
+        "seconds": 162.3
+      },
+      {
+        "dropout": 0.3,
+        "num_filters": 160,
+        "val_macro_f1": 0.7606,
+        "seconds": 128.1
+      },
+      {
+        "dropout": 0.4,
+        "num_filters": 128,
+        "val_macro_f1": 0.7634,
+        "seconds": 145.2
+      },
+      {
+        "dropout": 0.4,
+        "num_filters": 160,
+        "val_macro_f1": 0.7626,
+        "seconds": 125.5
+      },
+      {
+        "dropout": 0.5,
+        "num_filters": 128,
+        "val_macro_f1": 0.7648,
+        "seconds": 129.5
+      },
+      {
+        "dropout": 0.5,
+        "num_filters": 160,
+        "val_macro_f1": 0.7642,
+        "seconds": 177.5
+      }
+    ],
+    "best": {
+      "dropout": 0.5,
+      "num_filters": 128,
+      "val_macro_f1": 0.7648,
+      "seconds": 129.5
+    }
+  }
+}
